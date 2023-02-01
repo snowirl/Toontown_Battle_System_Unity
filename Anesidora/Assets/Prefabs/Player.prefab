@@ -277,6 +277,9 @@ MonoBehaviour:
   syncInterval: 0.1
   hp: 100
   maxHp: 137
+  battleCell: {fileID: 0}
+  cogPrefab: {fileID: 8008257645110008510, guid: 998ba9e9229b9644ca4d2f2c76dab57a,
+    type: 3}
 --- !u!1 &7511433483249628856
 GameObject:
   m_ObjectHideFlags: 0

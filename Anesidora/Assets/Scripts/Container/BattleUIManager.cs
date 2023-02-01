@@ -7,8 +7,14 @@ public class BattleUIManager : MonoBehaviour
 {
     public static BattleUIManager Instance { get; private set; }
 
-    public GameObject battleUI;
-    public GameObject[] toonHps, cogHps;
+    public GameObject battleUI, gagPanel, cogSelectPanel;
+    public GameObject[] toonHps, cogHps, cogSelectButtons;
+    public List<Gag>throwGags = new List<Gag>();
+    private Gag gagSelected;
+    private int cogSelected;
+
+    [HideInInspector]
+    public GameObject localPlayer;
 
     private void Awake()
     {
@@ -19,6 +25,9 @@ public class BattleUIManager : MonoBehaviour
     public void ShowBattleUI()
     {
         battleUI.SetActive(true);
+
+        gagPanel.SetActive(true);
+        cogSelectPanel.SetActive(false);
     }
 
     public void UpdateHP_UI(BattleCell battleCell)
@@ -50,5 +59,74 @@ public class BattleUIManager : MonoBehaviour
             cogHps[index].GetComponentInChildren<TMP_Text>().text = $"{g.GetComponent<CogBattle>().hp}/{g.GetComponent<CogBattle>().maxHp}";
             index++;
         }
+    }
+
+    public void SelectThrowGag(int val)
+    {
+        gagSelected = throwGags[val];
+
+        if(gagSelected.attackAll)
+        {
+            cogSelected = -1;
+            SendGagData();
+        }
+        else if(localPlayer.GetComponent<PlayerBattle>().battleCell.GetComponent<BattleCell>().cogs.Count < 2)
+        {
+            cogSelected = 0;
+            SendGagData();
+        }
+        else
+        {
+            ShowSelectCogPanel();
+        }
+    }
+
+    public void ShowSelectCogPanel()
+    {
+        gagPanel.SetActive(false);
+
+        foreach(GameObject g in cogSelectButtons)
+        {
+            g.SetActive(false);
+        }
+
+        for(int i = 0; i < localPlayer.GetComponent<PlayerBattle>().battleCell.GetComponent<BattleCell>().cogs.Count; i++)
+        {
+            cogSelectButtons[i].SetActive(true);
+        }
+
+        cogSelectPanel.SetActive(true);
+    }
+
+    public void SelectCog(int val)
+    {
+        cogSelected = val;
+
+        SendGagData();
+    }
+
+    public void HideBattleUI()
+    {
+        battleUI.SetActive(false);
+        gagPanel.SetActive(false);
+        cogSelectPanel.SetActive(false);
+    }
+
+    public void SendGagData()
+    {
+        HideBattleUI();
+
+        GagData gagData = new GagData();
+
+        gagData.gag = gagSelected;
+        gagData.whichCog = cogSelected;
+        gagData.sender = localPlayer;
+
+        localPlayer.GetComponent<PlayerBattle>().SendGagData(gagData);
+    }
+
+    public void SpawnCog()
+    {
+        localPlayer.GetComponent<PlayerBattle>().SpawnCog();
     }
 }

@@ -14,6 +14,8 @@ public class PlayerLoad : NetworkBehaviour
         if(!isLocalPlayer) {return;}
 
         LoadCamera();
+
+        BattleUIManager.Instance.localPlayer = this.gameObject;
     }
 
     private void LoadCamera()

@@ -327,7 +327,8 @@ MonoBehaviour:
     type: 3}
   autoCreatePlayer: 0
   playerSpawnMethod: 0
-  spawnPrefabs: []
+  spawnPrefabs:
+  - {fileID: 8008257645110008510, guid: 998ba9e9229b9644ca4d2f2c76dab57a, type: 3}
   additiveScenes:
   - Assets/Scenes/Playground.unity
   slider: {fileID: 0}

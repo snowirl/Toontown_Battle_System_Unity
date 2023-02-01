@@ -5,12 +5,14 @@ using Mirror;
 
 public class BattleCell : NetworkBehaviour
 {
-    public readonly SyncList<GameObject> toonsPending = new SyncList<GameObject>();
-    public readonly SyncList<GameObject> toonsPendingReady = new SyncList<GameObject>();
-    public readonly SyncList<GameObject> cogsPending = new SyncList<GameObject>();
-    public readonly SyncList<GameObject> cogsPendingReady = new SyncList<GameObject>();
-    public readonly SyncList<GameObject> toons = new SyncList<GameObject>();
-    public readonly SyncList<GameObject> cogs = new SyncList<GameObject>();
+    public List<GameObject> toonsPending = new List<GameObject>();
+    public List<GameObject> toonsPendingReady = new List<GameObject>();
+    public List<GameObject> cogsPending = new List<GameObject>();
+    public List<GameObject> cogsPendingReady = new List<GameObject>();
+    public List<GameObject> toons = new List<GameObject>();
+    public List<GameObject> cogs = new List<GameObject>();
+    public readonly SyncList<uint> toonIDs = new SyncList<uint>();
+    public readonly SyncList<uint> cogIDs = new SyncList<uint>();
     public List<Transform> toonPositions, toonPendingPositions, cogPositions, cogPendingPositions = new List<Transform>();
 
     [SyncVar]
@@ -20,6 +22,125 @@ public class BattleCell : NetworkBehaviour
     [SyncVar (hook = nameof(EnableCollider))]
     public bool colliderEnabled;
     public BattleCalculator battleCalculator;
+
+    public override void OnStartClient()
+    {
+        if(!isClientOnly)
+        {
+            print("Is not client only");
+            return;
+        }
+
+        SetUpLists();
+    }
+
+    public override void OnStartServer()
+    {
+        SetUpLists();
+    }
+
+    void SetUpLists()
+    {
+        toonIDs.Callback += OnToonListUpdated;
+
+        cogIDs.Callback += OnCogListUpdated;
+
+        for (int index = 0; index < toonIDs.Count; index++)
+        {
+            OnToonListUpdated(SyncList<uint>.Operation.OP_ADD, index, new uint(), toonIDs[index]);
+        }
+
+        for (int index = 0; index < cogIDs.Count; index++)
+        {
+            OnCogListUpdated(SyncList<uint>.Operation.OP_ADD, index, new uint(), cogIDs[index]);
+        }
+    }
+
+    
+
+    void OnToonListUpdated(SyncList<uint>.Operation op, int index, uint oldItem, uint newItem)
+    {
+        GameObject addedToon = null;
+        GameObject removedToon = null;
+
+        if(NetworkClient.spawned.TryGetValue(newItem, out NetworkIdentity id))
+        {
+            addedToon = id.gameObject;
+        }
+
+        if(NetworkClient.spawned.TryGetValue(oldItem, out NetworkIdentity netId))
+        {
+            removedToon = netId.gameObject;
+        }
+
+        switch (op)
+        {
+            case SyncList<uint>.Operation.OP_ADD:
+                // index is where it was added into the list
+                toons.Add(addedToon);
+                // newItem is the new item
+                break;
+            case SyncList<uint>.Operation.OP_INSERT:
+                // index is where it was inserted into the list
+                // newItem is the new item
+                break;
+            case SyncList<uint>.Operation.OP_REMOVEAT:
+                // index is where it was removed from the list
+                toons.Remove(removedToon);
+                // oldItem is the item that was removed
+                break;
+            case SyncList<uint>.Operation.OP_SET:
+                // index is of the item that was changed
+                // oldItem is the previous value for the item at the index
+                // newItem is the new value for the item at the index
+                break;
+            case SyncList<uint>.Operation.OP_CLEAR:
+                // list got cleared
+                break;
+        }
+    }
+
+    void OnCogListUpdated(SyncList<uint>.Operation op, int index, uint oldItem, uint newItem)
+    {
+        GameObject addedCog = null;
+        GameObject removedCog = null;
+
+        if(NetworkClient.spawned.TryGetValue(newItem, out NetworkIdentity id))
+        {
+            addedCog = id.gameObject;
+        }
+
+        if(NetworkClient.spawned.TryGetValue(oldItem, out NetworkIdentity netId))
+        {
+            removedCog = netId.gameObject;
+        }
+
+        switch (op)
+        {
+            case SyncList<uint>.Operation.OP_ADD:
+                // index is where it was added into the list
+                cogs.Add(addedCog);
+                // newItem is the new item
+                break;
+            case SyncList<uint>.Operation.OP_INSERT:
+                // index is where it was inserted into the list
+                // newItem is the new item
+                break;
+            case SyncList<uint>.Operation.OP_REMOVEAT:
+                // index is where it was removed from the list
+                cogs.Remove(removedCog);
+                // oldItem is the item that was removed
+                break;
+            case SyncList<uint>.Operation.OP_SET:
+                // index is of the item that was changed
+                // oldItem is the previous value for the item at the index
+                // newItem is the new value for the item at the index
+                break;
+            case SyncList<uint>.Operation.OP_CLEAR:
+                // list got cleared
+                break;
+        }
+    }
 
     [Command (requiresAuthority = false)]
     public void CmdAddToonPending(GameObject toon)
@@ -71,11 +192,12 @@ public class BattleCell : NetworkBehaviour
     [Server]
     public void AddToons()
     {
-        var tempList = toonsPendingReady;
+        var tempList = new List<GameObject>(toonsPendingReady);
 
         foreach(GameObject g in tempList)
         {
-            toons.Add(g);
+            // toons.Add(g); // We have to use network ID to find player instead and the list will find the gameObject
+            toonIDs.Add(g.GetComponent<NetworkIdentity>().netId);
             toonsPending.Remove(g);
             toonsPendingReady.Remove(g);
         }
@@ -94,11 +216,12 @@ public class BattleCell : NetworkBehaviour
     [Server]
     public void AddCogs()
     {
-        var tempList = cogsPendingReady;
+        var tempList = new List<GameObject>(cogsPendingReady);
 
         foreach(GameObject g in tempList)
         {
-            cogs.Add(g);
+            // cogs.Add(g);
+            cogIDs.Add(g.GetComponent<NetworkIdentity>().netId);
             cogsPending.Remove(g);
             cogsPendingReady.Remove(g);
         }
@@ -106,7 +229,7 @@ public class BattleCell : NetworkBehaviour
         int index = 0;
 
         UpdatePositions(); 
-
+        
         foreach(GameObject g in cogs)
         {
             StartCoroutine(MoveCogToBattleCell(g, cogPositions[index].position, false));
@@ -188,6 +311,11 @@ public class BattleCell : NetworkBehaviour
         player.transform.position = pos;
 
         CmdPlayerReady(player, isPending);
+
+        if(isPending)
+        {
+            player.gameObject.GetComponent<PlayerBattle>().battleCell = this.gameObject;
+        }
     }
 
     IEnumerator MoveCogToBattleCell(GameObject cog, Vector3 battlePos, bool isPending)

@@ -15,7 +15,11 @@ public class CogMove : NetworkBehaviour
 
     public override void OnStartServer()
     {
-        agent.destination = patrolPoints[0].position;
+        if(patrolPoints.Length > 0)
+        {
+            agent.destination = patrolPoints[0].position;
+        }
+        
     }
 
     void Update()
@@ -31,6 +35,13 @@ public class CogMove : NetworkBehaviour
     void Move()
     {
         if(!isServer) {return;}
+
+        if(patrolPoints.Length < 1)
+        {
+            return;
+        }
+
+        print(patrolPoints.Length);
 
         float distance = Vector3.Distance(transform.position, patrolPoints[patrolIndex].position);
 
