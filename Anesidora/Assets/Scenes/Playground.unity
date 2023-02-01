@@ -4574,6 +4574,8 @@ GameObject:
   - component: {fileID: 1786914382}
   - component: {fileID: 1786914381}
   - component: {fileID: 1786914383}
+  - component: {fileID: 1786914384}
+  - component: {fileID: 1786914385}
   m_Layer: 0
   m_Name: BattleCell
   m_TagString: BattleCell
@@ -4615,6 +4617,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  toonsPending: []
+  toonsPendingReady: []
+  cogsPending: []
+  cogsPendingReady: []
+  toons: []
+  cogs: []
   toonPositions:
   - {fileID: 1852399191}
   - {fileID: 911287117}
@@ -4671,6 +4679,35 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   battleCell: {fileID: 1786914381}
+  battleMovie: {fileID: 1786914384}
+--- !u!114 &1786914384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786914379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e09e750b700e9b44ab8838dd601051c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  moviesRemaining: 0
+  clientsDone: 0
+--- !u!114 &1786914385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786914379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2f1d2ca782f9f4a9ac1f31e53a364d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1845949526
 PrefabInstance:
   m_ObjectHideFlags: 0

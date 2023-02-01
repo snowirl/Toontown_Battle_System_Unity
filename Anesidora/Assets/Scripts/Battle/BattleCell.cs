@@ -63,15 +63,32 @@ public class BattleCell : NetworkBehaviour
         GameObject addedToon = null;
         GameObject removedToon = null;
 
-        if(NetworkClient.spawned.TryGetValue(newItem, out NetworkIdentity id))
+        if(isClientOnly)
         {
-            addedToon = id.gameObject;
+            if(NetworkClient.spawned.TryGetValue(newItem, out NetworkIdentity id))
+            {
+                addedToon = id.gameObject;
+            }
+
+            if(NetworkClient.spawned.TryGetValue(oldItem, out NetworkIdentity netId))
+            {
+                removedToon = netId.gameObject;
+            }
         }
 
-        if(NetworkClient.spawned.TryGetValue(oldItem, out NetworkIdentity netId))
+        if(isServer)
         {
-            removedToon = netId.gameObject;
+            if(NetworkServer.spawned.TryGetValue(newItem, out NetworkIdentity id2)) // If we are the server we need NetworkServer
+            {
+                addedToon = id2.gameObject;
+            }
+
+            if(NetworkServer.spawned.TryGetValue(oldItem, out NetworkIdentity id3))
+            {
+                removedToon = id3.gameObject;
+            }
         }
+
 
         switch (op)
         {
@@ -105,15 +122,32 @@ public class BattleCell : NetworkBehaviour
         GameObject addedCog = null;
         GameObject removedCog = null;
 
-        if(NetworkClient.spawned.TryGetValue(newItem, out NetworkIdentity id))
+        if(isClientOnly)
         {
-            addedCog = id.gameObject;
+            if(NetworkClient.spawned.TryGetValue(newItem, out NetworkIdentity id))
+            {
+                addedCog = id.gameObject;
+            }
+
+            if(NetworkClient.spawned.TryGetValue(oldItem, out NetworkIdentity netId))
+            {
+                removedCog = netId.gameObject;
+            }
         }
 
-        if(NetworkClient.spawned.TryGetValue(oldItem, out NetworkIdentity netId))
+        if(isServer)
         {
-            removedCog = netId.gameObject;
+            if(NetworkServer.spawned.TryGetValue(newItem, out NetworkIdentity id2)) // If we are the server we need NetworkServer
+            {
+                addedCog = id2.gameObject;
+            }
+
+            if(NetworkServer.spawned.TryGetValue(oldItem, out NetworkIdentity id3))
+            {
+                removedCog = id3.gameObject;
+            }
         }
+
 
         switch (op)
         {
@@ -158,8 +192,6 @@ public class BattleCell : NetworkBehaviour
         int count = toonsPending.Count - 1;
 
         TargetMoveToBattleCell(toon.GetComponent<NetworkIdentity>().connectionToClient, toon, toonPendingPositions[count].position, true);
-
-        // StartCoroutine(MovePlayerToBattleCell(toon, toonPendingPositions[count].position, true, true));
 
         if(battleState == BattleState.IDLE) // if that was the first toon to join we start.
         {

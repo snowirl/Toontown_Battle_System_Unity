@@ -8,6 +8,7 @@ public class BattleCalculator : NetworkBehaviour
     public BattleCell battleCell;
     private int[] tgtDef = {-2, -5, -10, -12, -15, -25, -30, -35, -40, -45, -50, -55};
     public List<GagData> gagDatas = new List<GagData>();
+    public BattleMovie battleMovie;
 
     [Server]
     public void StartBattle()
@@ -72,8 +73,6 @@ public class BattleCalculator : NetworkBehaviour
         {
             CalcThrow();
         }
-
-        
     }
 
     [Server]
@@ -147,7 +146,7 @@ public class BattleCalculator : NetworkBehaviour
             {
                 var battleCalc = new BattleCalculation();
 
-                battleCalc.whichCog = 0;
+                battleCalc.whichCog = i;
 
                 foreach(GagData g in cogList)
                 {
@@ -156,7 +155,7 @@ public class BattleCalculator : NetworkBehaviour
 
                 var cogs = new List<GameObject>();
 
-                cogs.Add(battleCell.cogs[0]);
+                cogs.Add(battleCell.cogs[i]);
 
                 battleCalc.didHit = CalculateAttackHit(battleCalc.gagDataList, cogs);
 
@@ -216,9 +215,17 @@ public class BattleCalculator : NetworkBehaviour
                 print($"Cog dodged the attack.");
             }
 
-            RpcReceiveThrowCalculations(battleCalculationList);
+            // RpcReceiveThrowCalculations(battleCalculationList);
         }
+
+        battleMovie.SendThrowMovies(battleCalculationList);
     }
+
+    // for each Calculation, run How to run on the server and client? 
+    // say [Server] StartCoroutine();
+    // and then say ClientRPC(StartCoroutine());
+    // We can check which players are still running the movies by telling the client the movies remaining.
+    // How to check if throw coroutine ended?
 
     [ClientRpc]
     void RpcReceiveThrowCalculations(List<BattleCalculation> battleCalculations)

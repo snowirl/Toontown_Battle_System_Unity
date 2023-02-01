@@ -5,8 +5,8 @@ using Mirror;
 
 public class CogBattle : NetworkBehaviour
 {
-    [SyncVar]
+    // [SyncVar]
     public int hp, maxHp, level;
-    [SyncVar]
+    // [SyncVar]
     public bool isLured;
 }
