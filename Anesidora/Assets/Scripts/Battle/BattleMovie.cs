@@ -9,9 +9,12 @@ public class BattleMovie : NetworkBehaviour
     public int moviesRemaining; // does NOT need to be synced, will be told by the Server when needed.
     public int clientsDone;
     private ThrowMovie throwMovie;
+    private BattleCalculator battleCalculator;
+    List<BattleCalculation> battleCalcList = new List<BattleCalculation>();
 
     void Start()
     {
+        battleCalculator = GetComponent<BattleCalculator>();
         battleCell = GetComponent<BattleCell>();
         throwMovie = GetComponent<ThrowMovie>();
     }
@@ -54,6 +57,7 @@ public class BattleMovie : NetworkBehaviour
         yield return new WaitForSeconds(waitingTime);
 
         print("Now we are ready to move on.");
+        ExecuteCalculations();
     }
 
     [Command (requiresAuthority = false)]
@@ -65,13 +69,25 @@ public class BattleMovie : NetworkBehaviour
         if(clientsDone >= battleCell.toons.Count)
         {
             StopCoroutine("ServerWaitingForOtherPlayers");
-            print("Command cancelled CO because are are done.");
+            print("Command cancelled CO because Clients are done.");
+            ExecuteCalculations();
+        }
+    }
+
+    [Server]
+    void ExecuteCalculations()
+    {
+        if(battleCalculator.track == GagTrack.THROW)
+        {
+            battleCalculator.ExecuteCalcThrow(battleCalcList);
         }
     }
 
     [Server]
     public void SendThrowMovies(List<BattleCalculation> battleCalculations)
     {
+        battleCalcList = battleCalculations; // Give the server the battle calculations it needs to send back
+
         clientsDone = 0;
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
@@ -83,9 +99,10 @@ public class BattleMovie : NetworkBehaviour
     [ClientRpc]
     void RpcThrowMovies(List<BattleCalculation> battleCalculations)
     {
+        if(!isClientOnly) {return;} // Don't run on Host 
+
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
         throwMovie.StartThrowMovies(battleCalculations); // Starts CO on clients
-
     }
 }

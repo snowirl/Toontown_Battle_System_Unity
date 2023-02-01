@@ -162,7 +162,14 @@ public class BattleCell : NetworkBehaviour
                 break;
             case SyncList<uint>.Operation.OP_REMOVEAT:
                 // index is where it was removed from the list
-                cogs.Remove(removedCog);
+                print("Removed");
+                cogs.RemoveAt(index); // much better
+                
+                // if(isServer)
+                // {
+                //     NetworkServer.Destroy(removedCog);
+                //     print("Destroyed Cog on the server.");
+                // }
                 // oldItem is the item that was removed
                 break;
             case SyncList<uint>.Operation.OP_SET:
@@ -266,6 +273,17 @@ public class BattleCell : NetworkBehaviour
         {
             StartCoroutine(MoveCogToBattleCell(g, cogPositions[index].position, false));
             index++;
+        }
+    }
+
+    [Server]
+    public void RemoveCogs(List<uint> cogsToBeRemoved)
+    {
+        var tempList = new List<uint>(cogsToBeRemoved);
+
+        foreach(uint u in tempList)
+        {
+            cogIDs.Remove(u);
         }
     }
 

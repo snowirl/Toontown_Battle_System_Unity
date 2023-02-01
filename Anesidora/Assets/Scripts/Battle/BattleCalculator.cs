@@ -9,6 +9,7 @@ public class BattleCalculator : NetworkBehaviour
     private int[] tgtDef = {-2, -5, -10, -12, -15, -25, -30, -35, -40, -45, -50, -55};
     public List<GagData> gagDatas = new List<GagData>();
     public BattleMovie battleMovie;
+    public GagTrack track; // Which gag track are we calculating for?
 
     [Server]
     public void StartBattle()
@@ -24,6 +25,9 @@ public class BattleCalculator : NetworkBehaviour
         gagDatas.Clear(); // Clear the last turn's gags
 
         battleCell.battleState = BattleState.PLAYER_CHOOSE;
+
+        battleCell.AddCogs();
+        battleCell.AddToons();
 
         foreach(GameObject g in battleCell.toons)
         {
@@ -67,11 +71,17 @@ public class BattleCalculator : NetworkBehaviour
     {
         print("Player(s) attacking.");
 
+        track = gagTrack;
+
         battleCell.battleState = BattleState.PLAYER_ATTACK;
 
         if(gagTrack == GagTrack.THROW)
         {
             CalcThrow();
+        }
+        else if(gagTrack == GagTrack.SQUIRT)
+        {
+            CalcSquirt();
         }
     }
 
@@ -94,6 +104,13 @@ public class BattleCalculator : NetworkBehaviour
                 throwList.Add(g);
                 print("Found throw gag.");
             }
+        }
+
+        if(throwList.Count == 0)
+        {
+            print("No SQUIRT gags found. Moving on...");
+            NextTrack();
+            return;
         }
 
         foreach(GagData g in throwList)
@@ -144,6 +161,12 @@ public class BattleCalculator : NetworkBehaviour
             
             if(cogList.Count > 0)
             {
+                if(battleCell.cogs[i].GetComponent<CogBattle>().isDead)
+                {
+                    print("Cog is already dead, we can't attack him.");
+                    break; // Cog is dead, so we do not need to calculate this Battle Calculation // Might be in the wrong spot though.
+                }
+
                 var battleCalc = new BattleCalculation();
 
                 battleCalc.whichCog = i;
@@ -161,10 +184,16 @@ public class BattleCalculator : NetworkBehaviour
 
                 battleCalculationList.Add(battleCalc);
             }
-        }
+        } 
 
-        // Calculation Time
+        // Need to check if BattleCalc list is null, and if it is, we move on to the next track.
 
+        battleMovie.SendThrowMovies(battleCalculationList);
+    }
+
+    [Server]
+    public void ExecuteCalcThrow(List<BattleCalculation> battleCalculationList)
+    {
         foreach(BattleCalculation b in battleCalculationList)
         {
             GameObject whichCog = battleCell.cogs[b.whichCog];
@@ -214,27 +243,42 @@ public class BattleCalculator : NetworkBehaviour
             {
                 print($"Cog dodged the attack.");
             }
-
-            // RpcReceiveThrowCalculations(battleCalculationList);
         }
 
-        battleMovie.SendThrowMovies(battleCalculationList);
+        CheckIfCogsAreDead();
     }
 
-    // for each Calculation, run How to run on the server and client? 
-    // say [Server] StartCoroutine();
-    // and then say ClientRPC(StartCoroutine());
-    // We can check which players are still running the movies by telling the client the movies remaining.
-    // How to check if throw coroutine ended?
-
-    [ClientRpc]
-    void RpcReceiveThrowCalculations(List<BattleCalculation> battleCalculations)
+    [Server]
+    void CalcSquirt()
     {
-        foreach(BattleCalculation b in battleCalculations)
+        print("Calculating squirt now.");
+
+        var battleCalculationList = new List<BattleCalculation>();
+
+        var squirtList = new List<GagData>();
+        
+        var cogOneList = new List<GagData>();
+        var cogTwoList = new List<GagData>();
+        var cogThreeList = new List<GagData>();
+        var cogFourList = new List<GagData>();
+        
+        foreach(GagData g in gagDatas)
         {
-            print($"Battle Calculations received on Client: Did Hit: {b.didHit}, Which Cog: {b.whichCog}");
+            if(g.gag.gagTrack == GagTrack.SQUIRT)
+            {
+                squirtList.Add(g);
+                print("Found SQUIRT gag.");
+            }
+        }
+
+        if(squirtList.Count == 0)
+        {
+            print("No SQUIRT gags found. Moving on...");
+            NextTrack();
+            return;
         }
     }
+
 
     private List<GagData> OrderGagList(List<GagData> gagList)
     {
@@ -255,17 +299,92 @@ public class BattleCalculator : NetworkBehaviour
     }
 
     [Server]
+    void CheckIfCogsAreDead()
+    {
+        int cogsDead = 0;
+
+        foreach(GameObject g in battleCell.cogs)
+        {
+            if(g.GetComponent<CogBattle>().hp <= 0)
+            {
+                g.GetComponent<CogBattle>().isDead = true;
+                print("Cog is dead.");
+                cogsDead++;
+            }
+        }
+
+        if(cogsDead >= battleCell.cogs.Count)
+        {
+            if(battleCell.cogsPending.Count == 0)
+            {
+                print("All cogs are dead. And no cogs are pending. Battle should be over.");
+                Win();
+            }
+            else
+            {
+                print("All cogs are dead. Cogs are pending; Battle should continue.");
+                EnemyAttack();
+            }   
+        }
+        else
+        {
+            NextTrack();
+        }
+    }
+
+    [Server]
+    void RemoveDeadCogs() // Called after both toons and cogs attacked
+    {
+        var cogIdList = new List<uint>();
+
+        foreach(GameObject g in battleCell.cogs)
+        {
+            if(g.GetComponent<CogBattle>().isDead)
+            {
+                cogIdList.Add(g.GetComponent<NetworkIdentity>().netId);
+            }
+        }
+
+        if(cogIdList.Count > 0)
+        {
+            battleCell.RemoveCogs(cogIdList);
+        }
+
+        if(battleCell.battleState != BattleState.WIN)
+        {
+            PlayerChoose(); // Back to player choose after we check if cogs died, and battle continues
+        }
+    }
+
+    [Server]
+    void NextTrack()
+    {
+        if(track == GagTrack.THROW)
+        {
+            PlayerAttack(GagTrack.SQUIRT);
+        }
+        else if(track == GagTrack.SQUIRT)
+        {
+            EnemyAttack();
+        }
+    }
+
+    [Server]
     public void EnemyAttack()
     {
         battleCell.battleState = BattleState.ENEMY_ATTACK;
 
         print("Enemies attacking.");
+
+        RemoveDeadCogs(); // back to player choose after attack // need to check if cogs died
     }
 
     [Server]
     public void Win()
     {
         battleCell.battleState = BattleState.WIN;
+
+        RemoveDeadCogs(); // Might need to call here too
 
         print("Toons win.");
     }
