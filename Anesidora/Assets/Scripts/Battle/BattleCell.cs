@@ -165,11 +165,11 @@ public class BattleCell : NetworkBehaviour
                 print("Removed");
                 cogs.RemoveAt(index); // much better
                 
-                // if(isServer)
-                // {
-                //     NetworkServer.Destroy(removedCog);
-                //     print("Destroyed Cog on the server.");
-                // }
+                if(isServer)
+                {
+                    NetworkServer.Destroy(removedCog);
+                    print("Destroyed Cog on the server.");
+                }
                 // oldItem is the item that was removed
                 break;
             case SyncList<uint>.Operation.OP_SET:
@@ -344,13 +344,19 @@ public class BattleCell : NetworkBehaviour
 
     IEnumerator MoveToonToBattleCell(GameObject player, Vector3 battlePos, bool isPending)
     {
+        float distanceThreshold = .25f;
         var pos = new Vector3(battlePos.x, battlePos.y + 1, battlePos.z);
         float distance = Vector3.Distance(player.transform.position,pos);
         var step = (5) * Time.deltaTime;
 
         player.transform.LookAt(new Vector3(battlePos.x, player.transform.position.y, battlePos.z));
 
-        while(distance > .25f)
+        if(distance > distanceThreshold) // So Run animation doesn't keep going
+        {
+            player.GetComponent<PlayerAnimate>().ChangeAnimationState("Run");
+        }
+
+        while(distance > distanceThreshold)
         {
             distance = Vector3.Distance(player.transform.position, pos);
             player.transform.position = Vector3.MoveTowards(player.transform.position, pos, step);
@@ -359,6 +365,7 @@ public class BattleCell : NetworkBehaviour
 
         player.transform.LookAt(new Vector3(cogPendingPositions[0].position.x, player.transform.position.y,cogPendingPositions[0].position.z));
         player.transform.position = pos;
+        player.GetComponent<PlayerAnimate>().ChangeAnimationState("Idle");
 
         CmdPlayerReady(player, isPending);
 
@@ -376,6 +383,11 @@ public class BattleCell : NetworkBehaviour
 
         cog.transform.LookAt(new Vector3(battlePos.x, cog.transform.position.y, battlePos.z));
 
+        if(distance > .25f)
+        {
+            cog.GetComponent<CogAnimate>().ChangeAnimationState("Walk");
+        }
+
         while(distance > .25f)
         {
             distance = Vector3.Distance(cog.transform.position, pos);
@@ -388,6 +400,8 @@ public class BattleCell : NetworkBehaviour
 
         cog.transform.LookAt(new Vector3(toonPendingPositions[0].position.x, cog.transform.position.y,cogPendingPositions[0].position.z));
 
+        cog.GetComponent<CogAnimate>().ChangeAnimationState("Idle");
+        
         CogReady(cog, isPending);
     }
 

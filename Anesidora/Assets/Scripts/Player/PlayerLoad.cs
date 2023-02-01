@@ -7,6 +7,7 @@ using Cinemachine;
 public class PlayerLoad : NetworkBehaviour
 {
     public Transform lookTarget; // where the camera should look
+    public GameObject torsoInstance, legsInstance;
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();

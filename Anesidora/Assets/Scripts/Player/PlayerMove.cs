@@ -19,8 +19,9 @@ public class PlayerMove : NetworkBehaviour
     public Transform GroundCheck;  
     public float groundDistance = .4f;
     public LayerMask groundLayer;
+    public PlayerAnimate playerAnimate;
 
-    // public PlayerAnimate playerAnimate;
+
     public override void OnStartLocalPlayer()
     {
         if (!isLocalPlayer) { return; }
@@ -65,7 +66,7 @@ public class PlayerMove : NetworkBehaviour
             moveDirection = new Vector2(0, 0); // for animation to be idle
         }
 
-        // Animate(moveDirection);
+        Animate(moveDirection);
     }
 
     private void FixedUpdate()
@@ -114,35 +115,35 @@ public class PlayerMove : NetworkBehaviour
         characterController.enabled = true;
     }
 
-    // private void Animate(Vector2 direction)
-    // {
-    //     if(!canMove) {return;}
+    private void Animate(Vector2 direction)
+    {
+        if(!canMove) {return;}
         
-    //     if(!isGrounded)
-    //     {
-    //         if(playerAnimate.currentState != "Leap" && playerAnimate.currentState != "Jump")
-    //         {
-    //             if(direction.y != 0)
-    //                 playerAnimate.ChangeAnimationState("Leap");
-    //             else
-    //                 playerAnimate.ChangeAnimationState("Jump");
-    //         }
-    //     }
-    //     else if(direction.y == 1)
-    //     {
-    //         playerAnimate.ChangeAnimationState("Run");
-    //     }
-    //     else if(direction.y == -1)
-    //     {
-    //         playerAnimate.ChangeAnimationState("Walk");
-    //     }
-    //     else if(direction.x != 0)
-    //     {
-    //         playerAnimate.ChangeAnimationState("Turn");
-    //     }
-    //     else
-    //     {
-    //         playerAnimate.ChangeAnimationState("Idle");
-    //     }
-    // }
+        if(!isGrounded)
+        {
+            if(playerAnimate.currentState != "Leap" && playerAnimate.currentState != "Jump")
+            {
+                if(direction.y != 0)
+                    playerAnimate.ChangeAnimationState("Leap");
+                else
+                    playerAnimate.ChangeAnimationState("Jump");
+            }
+        }
+        else if(direction.y == 1)
+        {
+            playerAnimate.ChangeAnimationState("Run");
+        }
+        else if(direction.y == -1)
+        {
+            playerAnimate.ChangeAnimationState("Walk");
+        }
+        else if(direction.x != 0)
+        {
+            playerAnimate.ChangeAnimationState("Turn");
+        }
+        else
+        {
+            playerAnimate.ChangeAnimationState("Idle");
+        }
+    }
 }

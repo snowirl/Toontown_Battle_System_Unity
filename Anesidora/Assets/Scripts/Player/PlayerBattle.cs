@@ -18,7 +18,13 @@ public class PlayerBattle : NetworkBehaviour
     {
         if(!isLocalPlayer) {return;}
 
-        battleCell.GetComponent<BattleCalculator>().CmdSelectGag(gagData);
+        var newGagData = gagData;
+
+        newGagData.whichToon = (int)this.gameObject.GetComponent<NetworkIdentity>().netId;
+
+        print("Sending data: " + gagData.whichToon);
+
+        battleCell.GetComponent<BattleCalculator>().CmdSelectGag(newGagData);
     }
 
     public void SpawnCog() // For test purposes only

@@ -104,5 +104,18 @@ public class BattleMovie : NetworkBehaviour
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
         throwMovie.StartThrowMovies(battleCalculations); // Starts CO on clients
+
+    }
+
+    public GameObject GetToonFromIndex(int index)
+    {
+        int toonIndex = battleCell.toonIDs.IndexOf((uint)index);
+
+        return battleCell.toons[toonIndex];
+    }
+
+    public GameObject GetCogFromIndex(int index)
+    {
+        return battleCell.cogs[index];
     }
 }

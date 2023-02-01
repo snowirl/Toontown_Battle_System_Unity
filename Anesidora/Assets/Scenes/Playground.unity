@@ -4576,6 +4576,7 @@ GameObject:
   - component: {fileID: 1786914383}
   - component: {fileID: 1786914384}
   - component: {fileID: 1786914385}
+  - component: {fileID: 1786914386}
   m_Layer: 0
   m_Name: BattleCell
   m_TagString: BattleCell
@@ -4680,6 +4681,7 @@ MonoBehaviour:
   syncInterval: 0.1
   battleCell: {fileID: 1786914381}
   battleMovie: {fileID: 1786914384}
+  track: 0
 --- !u!114 &1786914384
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4708,6 +4710,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a2f1d2ca782f9f4a9ac1f31e53a364d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+--- !u!114 &1786914386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786914379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de112966126f9574dadde0b5453a9202, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
 --- !u!1001 &1845949526
 PrefabInstance:
   m_ObjectHideFlags: 0

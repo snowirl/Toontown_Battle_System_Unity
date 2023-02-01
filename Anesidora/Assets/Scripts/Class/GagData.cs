@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class GagData
 {
-    public int whichCog;
+    public int whichTarget, whichToon;
     public Gag gag;
-    public GameObject sender;
 }

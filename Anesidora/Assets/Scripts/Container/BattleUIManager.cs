@@ -119,8 +119,8 @@ public class BattleUIManager : MonoBehaviour
         GagData gagData = new GagData();
 
         gagData.gag = gagSelected;
-        gagData.whichCog = cogSelected;
-        gagData.sender = localPlayer;
+        gagData.whichTarget = cogSelected;
+        gagData.whichToon = -1; // Needs to be changed in Network Behaviour
 
         localPlayer.GetComponent<PlayerBattle>().SendGagData(gagData);
     }

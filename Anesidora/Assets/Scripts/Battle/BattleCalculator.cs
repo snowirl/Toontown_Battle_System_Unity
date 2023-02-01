@@ -46,11 +46,11 @@ public class BattleCalculator : NetworkBehaviour
             return;
         }
 
-        var newSender = gagData.sender;
+        var newSender = gagData.whichToon;
 
         foreach(GagData g in gagDatas)
         {
-            if(g.sender == newSender) 
+            if(g.whichToon == newSender) 
             {
                 print("Sender has already selected a gag.");
                 return;
@@ -108,26 +108,26 @@ public class BattleCalculator : NetworkBehaviour
 
         if(throwList.Count == 0)
         {
-            print("No SQUIRT gags found. Moving on...");
+            print("No Throw gags found. Moving on...");
             NextTrack();
             return;
         }
 
         foreach(GagData g in throwList)
         {
-            if(g.whichCog == 0)
+            if(g.whichTarget == 0)
             {
                 cogOneList.Add(g);
             }
-            else if(g.whichCog == 1)
+            else if(g.whichTarget == 1)
             {
                 cogTwoList.Add(g);
             }
-            else if(g.whichCog == 2)
+            else if(g.whichTarget == 2)
             {
                 cogThreeList.Add(g);
             }
-            else if(g.whichCog == 3)
+            else if(g.whichTarget == 3)
             {
                 cogFourList.Add(g);
             }
