@@ -353,6 +353,7 @@ public class BattleCalculator : NetworkBehaviour
         if(battleCell.battleState != BattleState.WIN)
         {
             PlayerChoose(); // Back to player choose after we check if cogs died, and battle continues
+            // Currently if a cog joins from far away before it can get there, 
         }
     }
 
@@ -479,6 +480,8 @@ public class BattleCalculator : NetworkBehaviour
     {
         BattleUIManager.Instance.ShowBattleUI();
         BattleUIManager.Instance.UpdateHP_UI(battleCell);
+
+        battleMovie.SwitchCamera(battleMovie.battleCamera); // switch camera to top view
     }
 }
 

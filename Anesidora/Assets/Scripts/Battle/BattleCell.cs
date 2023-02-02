@@ -274,6 +274,11 @@ public class BattleCell : NetworkBehaviour
             StartCoroutine(MoveCogToBattleCell(g, cogPositions[index].position, false));
             index++;
         }
+
+        foreach(GameObject g in toons)
+        {
+            battleCalculator.TargetPlayerChoose(g.GetComponent<NetworkIdentity>().connectionToClient); // update cog UI
+        }
     }
 
     [Server]
@@ -318,21 +323,21 @@ public class BattleCell : NetworkBehaviour
         }
         else if(cogs.Count == 2)
         {
-            cogPositions[0].transform.localPosition = new Vector3(5,0,-1);
-            cogPositions[1].transform.localPosition = new Vector3(5,0,1);
+            cogPositions[0].transform.localPosition = new Vector3(5,0,1);
+            cogPositions[1].transform.localPosition = new Vector3(5,0,-1);
         }
         else if(cogs.Count == 3)
         {
-            cogPositions[0].transform.localPosition = new Vector3(5,0,-2);
+            cogPositions[0].transform.localPosition = new Vector3(5,0,2);
             cogPositions[1].transform.localPosition = new Vector3(5,0,0);
-            cogPositions[2].transform.localPosition = new Vector3(5,0,2);
+            cogPositions[2].transform.localPosition = new Vector3(5,0,-2);
         }
         else if(cogs.Count == 4)
         {
-            cogPositions[0].transform.localPosition = new Vector3(5,0,-3);
-            cogPositions[1].transform.localPosition = new Vector3(5,0,-1);
-            cogPositions[2].transform.localPosition = new Vector3(5,0,1);
-            cogPositions[3].transform.localPosition = new Vector3(5,0,3);
+            cogPositions[0].transform.localPosition = new Vector3(5,0,3);
+            cogPositions[1].transform.localPosition = new Vector3(5,0,1);
+            cogPositions[2].transform.localPosition = new Vector3(5,0,-1);
+            cogPositions[3].transform.localPosition = new Vector3(5,0,-3);
         }
     }
 

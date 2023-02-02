@@ -64,7 +64,8 @@ MonoBehaviour:
   materialHashCode: -2106215911
   m_Version: 1.1.0
   m_SourceFontFileGUID: f8db1babda3a8d343b5cc70000740c28
-  m_SourceFontFile_EditorRef: {fileID: 12800000, guid: f8db1babda3a8d343b5cc70000740c28, type: 3}
+  m_SourceFontFile_EditorRef: {fileID: 12800000, guid: f8db1babda3a8d343b5cc70000740c28,
+    type: 3}
   m_SourceFontFile: {fileID: 0}
   m_AtlasPopulationMode: 0
   m_FaceInfo:
@@ -2433,7 +2434,7 @@ Material:
     - _Reflectivity: 6.49
     - _ScaleRatioA: 0.8333333
     - _ScaleRatioB: 0.6770833
-    - _ScaleRatioC: 0.2967061
+    - _ScaleRatioC: 0.6770833
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -2446,10 +2447,10 @@ Material:
     - _StencilWriteMask: 255
     - _TextureHeight: 512
     - _TextureWidth: 512
-    - _UnderlayDilate: 1
-    - _UnderlayOffsetX: 1
-    - _UnderlayOffsetY: -1
-    - _UnderlaySoftness: 0.282
+    - _UnderlayDilate: 0.175
+    - _UnderlayOffsetX: 0.595
+    - _UnderlayOffsetY: -0.488
+    - _UnderlaySoftness: 0
     - _VertexOffsetX: 0
     - _VertexOffsetY: 0
     - _WeightBold: 0.75
@@ -2464,5 +2465,5 @@ Material:
     - _ReflectFaceColor: {r: 0, g: 0, b: 0, a: 1}
     - _ReflectOutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+    - _UnderlayColor: {r: 0.052062336, g: 0.011095252, b: 0, a: 1}
   m_BuildTextureStacks: []

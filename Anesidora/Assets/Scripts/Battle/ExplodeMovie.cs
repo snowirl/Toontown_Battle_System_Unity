@@ -28,7 +28,9 @@ public class ExplodeMovie : NetworkBehaviour
             g.GetComponent<PlayerAnimate>().StartCoroutine("BattleAnimate", "Duck"); // This is going to make some Toons run Idle early on multiple explosions...
         }
 
-        yield return new WaitForSeconds(2f);
+        GameObject cog = battleMovie.GetCogFromIndex(whichCog);
+
+        yield return cog.GetComponent<CogAnimate>().StartCoroutine("ExplodeCog");
 
         battleMovie.MovieFinished();
     }
