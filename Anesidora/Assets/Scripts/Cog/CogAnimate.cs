@@ -80,17 +80,17 @@ public class CogAnimate : NetworkBehaviour
 
         damageText.GetComponentInChildren<TMP_Text>().text = message;
 
-        damageText.LeanMoveLocalY(-200, 0);
+        damageText.LeanMoveLocalY(-600, 0);
 
         damageText.SetActive(true);
 
         yield return new WaitForEndOfFrame();
 
-        damageText.LeanMoveLocalY(-75, 1f);
+        damageText.LeanMoveLocalY(350, 1.75f).setEase(LeanTweenType.easeOutCubic);
 
         LeanTween.alphaCanvas(canvasGroup, 1, .25f);
 
-        yield return new WaitForSeconds(.75f);
+        yield return new WaitForSeconds(2f);
 
         LeanTween.alphaCanvas(canvasGroup, 0, .25f);
 
