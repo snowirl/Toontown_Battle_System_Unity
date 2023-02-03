@@ -7,6 +7,7 @@ public class PlayerAnimate : NetworkBehaviour
 {
     public string currentState;
     public PlayerLoad playerLoad;
+    public GameObject pieSpot;
 
     public void ChangeAnimationState(string newState)
     {

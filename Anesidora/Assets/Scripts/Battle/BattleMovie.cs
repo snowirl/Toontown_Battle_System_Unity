@@ -12,6 +12,7 @@ public class BattleMovie : NetworkBehaviour
     private ThrowMovie throwMovie;
     private BattleCalculator battleCalculator;
     List<BattleCalculation> battleCalcList = new List<BattleCalculation>();
+    List<BattleCalculationCog> battleCalcCogList = new List<BattleCalculationCog>();
     public GameObject battleCamera;
     public List<GameObject> toonCameras = new List<GameObject>();
     public List<GameObject> toonGroupCameras = new List<GameObject>();

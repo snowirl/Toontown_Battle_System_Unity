@@ -381,6 +381,46 @@ public class BattleCalculator : NetworkBehaviour
     }
 
     [Server]
+    void CalcCogAttacks()
+    {
+        List<BattleCalculationCog> battleCalculationCogList = new List<BattleCalculationCog>();
+
+        foreach(GameObject g in battleCell.cogs)
+        {
+            var battleCalcCog = new BattleCalculationCog();
+            battleCalcCog.cogAttack = g.GetComponent<CogLoad>().cog.cogAttacks[Random.Range(0, g.GetComponent<CogLoad>().cog.cogAttacks.Count)];
+            battleCalcCog.dmg = battleCalcCog.cogAttack.damages[g.GetComponent<CogLoad>().level];
+            battleCalcCog.didHit = CalcCogAttackHit(battleCalcCog.cogAttack,g.GetComponent<CogLoad>().level - g.GetComponent<CogLoad>().cog.minCogLevel); // MINUS min cog level to get the right index for level
+
+            if(battleCalcCog.cogAttack.areaOfEffect)
+            {
+                battleCalcCog.whichTarget = -1; // -1 hits all toons
+            }
+            else
+            {
+                battleCalcCog.whichTarget = Random.Range(0, battleCell.toonIDs.Count);
+            }
+        }
+    }
+
+    [Server]
+    bool CalcCogAttackHit(CogAttack cogAttack, int cogLevel) // Remember to calculate in the cogs min level and max level for accuracy array 
+    {
+        int acc = cogAttack.accuracy[cogLevel];
+
+        int rand = Random.Range(0,100);
+
+        if(rand < acc)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    [Server]
     public void Win()
     {
         battleCell.battleState = BattleState.WIN;

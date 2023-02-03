@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
-public class CogBattle : NetworkBehaviour
+public class CogLoad : NetworkBehaviour
 {
     [SyncVar]
-    public int hp, maxHp, level;
+    public Cog cog;
+
     [SyncVar]
-    public bool isLured, isTrapped, isDead;
+    public int level;
 }

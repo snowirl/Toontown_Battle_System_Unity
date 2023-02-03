@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2521039095125966158
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3445800533528162850}
+  m_Layer: 0
+  m_Name: PieHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3445800533528162850
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2521039095125966158}
+  m_LocalRotation: {x: 0.72315323, y: -0.15782969, z: 0.025518117, w: 0.6719287}
+  m_LocalPosition: {x: -0.0006952322, y: 0.0007835252, z: 0.0006963832}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6727151679350393636}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 101.51599, y: 61.349, z: 76.323}
 --- !u!1 &4948728276484729258
 GameObject:
   m_ObjectHideFlags: 0
@@ -333,6 +364,7 @@ MonoBehaviour:
   syncInterval: 0.1
   currentState: 
   playerLoad: {fileID: 5185894518764691951}
+  pieSpot: {fileID: 2521039095125966158}
 --- !u!1 &7511433483249628856
 GameObject:
   m_ObjectHideFlags: 0
@@ -870,6 +902,12 @@ PrefabInstance:
 --- !u!4 &2937992171252023877 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6206281802730777044, guid: 92334eca8ff60bd46a9efd94d0171ce4,
+    type: 3}
+  m_PrefabInstance: {fileID: 9143710472122805137}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6727151679350393636 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -6647496711688396619, guid: 92334eca8ff60bd46a9efd94d0171ce4,
     type: 3}
   m_PrefabInstance: {fileID: 9143710472122805137}
   m_PrefabAsset: {fileID: 0}

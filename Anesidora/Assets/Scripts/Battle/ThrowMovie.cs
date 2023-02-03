@@ -10,6 +10,7 @@ public class ThrowMovie : NetworkBehaviour
     private ExplodeMovie explodeMovie;
     bool showedToonsCamera, showedCogsCamera;
     List<BattleCalculation> battleCalculations = new List<BattleCalculation>();
+    public List<GameObject> throwProps = new List<GameObject>();
 
     void Start()
     {
@@ -44,7 +45,7 @@ public class ThrowMovie : NetworkBehaviour
         {
             for(int i = 0; i < numOfGags; i++)
             {
-                StartCoroutine(UseSingleThrowGag(battleCalculation.gagDataList[i], battleCalculation.didHit));
+                StartCoroutine(UseSingleThrowGag(battleCalculation, i));
                 print("Running Loop");
                 yield return new WaitForSeconds(delay);
             }
@@ -52,7 +53,7 @@ public class ThrowMovie : NetworkBehaviour
 
         print(numOfGags);
 
-        yield return StartCoroutine(UseSingleThrowGag(battleCalculation.gagDataList[numOfGags], battleCalculation.didHit)); // wait for the last gag to finish
+        yield return StartCoroutine(UseSingleThrowGag(battleCalculation, numOfGags)); // wait for the last gag to finish
 
         // if(battleCalculation.gagDataList.Count > 1)
         // {
@@ -129,31 +130,45 @@ public class ThrowMovie : NetworkBehaviour
         return isDead;
     }
 
-    IEnumerator UseSingleThrowGag(GagData g, bool didHit)
+    IEnumerator UseSingleThrowGag(BattleCalculation battleCalculation, int gagIndex)
     {
-        if(g.gag.gagLevel == 0)
+        if(battleCalculation.gagDataList[gagIndex].gag.gagLevel == 0)
         {
-            yield return StartCoroutine(DoCupcake(g, didHit));
+            yield return StartCoroutine(DoCupcake(battleCalculation, gagIndex));
         }
     }
 
-    IEnumerator DoCupcake(GagData gagData, bool didHit)
+    IEnumerator DoCupcake(BattleCalculation battleCalculation, int gagIndex)
     {
         print("Throwing Cupcake.");
 
-        ChangeCamera(1, gagData.whichToon, gagData.whichTarget);
+        ChangeCamera(1, battleCalculation.gagDataList[gagIndex].whichToon, battleCalculation.gagDataList[gagIndex].whichTarget);
 
-        GameObject toon = battleMovie.GetToonFromIndex(gagData.whichToon);
+        GameObject toon = battleMovie.GetToonFromIndex(battleCalculation.gagDataList[gagIndex].whichToon);
 
-        GameObject cog = battleMovie.GetCogFromIndex(gagData.whichTarget);
+        GameObject cog = battleMovie.GetCogFromIndex(battleCalculation.gagDataList[gagIndex].whichTarget);
 
         toon.GetComponent<PlayerAnimate>().StartCoroutine("BattleAnimate", "Throw");
 
-        if(didHit)
-        {
-            yield return new WaitForSeconds(2.5f);
+        GameObject pie = Instantiate(throwProps[0], Vector3.zero, Quaternion.Euler(-90,0,0));
 
-            ChangeCamera(2, gagData.whichToon, gagData.whichTarget);
+        pie.transform.SetParent(toon.GetComponent<PlayerAnimate>().pieSpot.transform);
+
+        pie.transform.localPosition = Vector3.zero;
+        pie.transform.localRotation = Quaternion.Euler(0,0,0);
+        pie.transform.localScale = Vector3.zero;
+
+        pie.LeanScale(Vector3.one, .35f).setEase(LeanTweenType.easeOutCubic);
+
+        yield return new WaitForSeconds(2.6f);
+
+        StartCoroutine(PropThrow(pie, cog));
+
+        if(battleCalculation.didHit)
+        {
+            yield return new WaitForSeconds(.25f);
+
+            ChangeCamera(2, battleCalculation.gagDataList[gagIndex].whichToon, battleCalculation.gagDataList[gagIndex].whichTarget);
 
             yield return new WaitForSeconds(.25f);
 
@@ -161,22 +176,85 @@ public class ThrowMovie : NetworkBehaviour
 
             yield return new WaitForEndOfFrame();
 
-            cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{gagData.gag.power}");
+            cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{battleCalculation.gagDataList[gagIndex].gag.power}", "red");
 
-            yield return cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit"); // Wait until Animation Finishes
+            ChangeCogHealthButton(battleCalculation, gagIndex, cog);
+
+            StopCoroutine("Splat");
+
+            StartCoroutine(Splat(cog));
+
+            if(battleCalculation.gagDataList.Count - 1 == gagIndex) // we are the last gag
+            {
+                if(battleCalculation.gagDataList.Count > 1) // more than one gag was used.
+                {
+                    print("More than one gag was used in this movie.");
+                    cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit");
+                    yield return new WaitForSeconds(1f);
+                    cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{GetKnockbackDamage(battleCalculation)}", "yellow");
+                    yield return new WaitForSeconds(2f);
+                }
+                else
+                {
+                    yield return cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit"); // Wait until Animation Finishes
+                }
+            }
+            else
+            {
+                yield return cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit"); // Wait until Animation Finishes
+            }
+
+            
+
         }
         else
         {
-            yield return new WaitForSeconds(2.15f);
-
-            ChangeCamera(2, gagData.whichToon, gagData.whichTarget);
-
             yield return new WaitForSeconds(.25f);
 
-            cog.GetComponent<CogAnimate>().CallAnimateDamageText($"Miss");
+            ChangeCamera(2, battleCalculation.gagDataList[gagIndex].whichToon, battleCalculation.gagDataList[gagIndex].whichTarget);
 
-            yield return StartCoroutine(ThrowMissMovie(cog, gagData.whichTarget));
+            yield return new WaitForSeconds(.1f);
+
+            cog.GetComponent<CogAnimate>().CallAnimateDamageText($"Miss", "red");
+
+            yield return StartCoroutine(ThrowMissMovie(cog, battleCalculation.gagDataList[gagIndex].whichTarget));
         }
+    }
+
+    int GetKnockbackDamage(BattleCalculation battleCalculation)
+    {
+        int dmg = 0;
+
+        foreach(GagData g in battleCalculation.gagDataList)
+        {
+            dmg += g.gag.power;
+        }
+
+        return (int)(dmg * .2f);
+    }
+
+    int GetLureDamage(BattleCalculation battleCalculation)
+    {
+        int dmg = 0;
+
+        foreach(GagData g in battleCalculation.gagDataList)
+        {
+            g.gag.power += dmg;
+        }
+
+        return (int)(dmg * .5f);
+    }
+
+    void ChangeCogHealthButton(BattleCalculation battleCalculation, int gagIndex, GameObject target)
+    {
+        int dmg = 0;
+
+        for (int i = 0; i < gagIndex + 1; i++)
+        {
+            dmg += battleCalculation.gagDataList[i].gag.power;
+        }
+
+        target.GetComponent<CogAnimate>().ChangeHealthButton(dmg);
     }
 
     IEnumerator ThrowMissMovie(GameObject cog, int cogIndex)
@@ -250,6 +328,46 @@ public class ThrowMovie : NetworkBehaviour
         yield return cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", dodgeAnim); // Wait until Animation Finishes
 
         yield return new WaitForSeconds(2f);
+    }
+
+    IEnumerator PropThrow(GameObject prop, GameObject target)
+    {
+        prop.transform.SetParent(null);
+        prop.transform.localRotation = Quaternion.Euler(90,90,0);
+
+        var targetPos = new Vector3(target.transform.position.x, target.transform.position.y + 2, target.transform.position.z);
+        float distance = Vector3.Distance(prop.transform.position, targetPos);
+        var step = 25 * Time.deltaTime; // calculate distance to move
+
+        while(distance > .1f)
+        {
+            distance = Vector3.Distance(prop.transform.position, targetPos);
+            prop.transform.position = Vector3.MoveTowards(prop.transform.position, targetPos, step);
+            yield return null;
+        }
+
+        Destroy(prop);
+    }
+
+    IEnumerator Splat(GameObject target) // in the future, you can get gag index for the splat
+    {
+        var splatContainer = target.GetComponent<CogAnimate>().splatContainer;
+
+        splatContainer.LeanScale(Vector3.zero, 0);
+
+        yield return new WaitForEndOfFrame();
+
+        splatContainer.SetActive(true);
+
+        splatContainer.LeanScale(Vector3.one, .3f).setEase(LeanTweenType.easeOutCubic);
+
+        yield return new WaitForSeconds(.75f);
+
+        splatContainer.LeanScale(Vector3.zero, .25f).setEase(LeanTweenType.easeOutCubic);
+
+        yield return new WaitForSeconds(.25f);
+
+        splatContainer.SetActive(false);
     }
 
     void ChangeCamera(int phase, int toonIndex, int cogIndex) // 1 for toons cam, 1 for cogs cam
