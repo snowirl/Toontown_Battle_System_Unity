@@ -17,6 +17,6 @@ MonoBehaviour:
   minCogLevel: 1
   maxCogLevel: 5
   cogAttacks:
-  - {fileID: 11400000, guid: db11ae31fa5544a49b79570a097ba513, type: 2}
-  - {fileID: 11400000, guid: db11ae31fa5544a49b79570a097ba513, type: 2}
-  - {fileID: 11400000, guid: db11ae31fa5544a49b79570a097ba513, type: 2}
+  - {fileID: 11400000, guid: 72ac2b6c485e8a04aa2a037bb6eba382, type: 2}
+  - {fileID: 11400000, guid: 72ac2b6c485e8a04aa2a037bb6eba382, type: 2}
+  - {fileID: 11400000, guid: 72ac2b6c485e8a04aa2a037bb6eba382, type: 2}

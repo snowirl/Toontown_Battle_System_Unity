@@ -13,6 +13,7 @@ public class CogAnimate : NetworkBehaviour
     public Color redColor, orangeColor, yellowColor, greenColor;
     public GameObject cogHealthButton;
     public Material redMat, orangeMat, yellowMat, greenMat, blackMat;
+    public GameObject particleSpawnSpot;
 
     [Server]
     public void ChangeAnimationState(string newState)
@@ -158,8 +159,6 @@ public class CogAnimate : NetworkBehaviour
         }
 
         cogHealthButton.GetComponent<Renderer>().material = mat;
-
-        print("Ran");
     }
 
     IEnumerator RedBlinking()

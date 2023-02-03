@@ -18,12 +18,14 @@ public class BattleMovie : NetworkBehaviour
     public List<GameObject> toonGroupCameras = new List<GameObject>();
     public List<GameObject> cogCameras = new List<GameObject>();
     public List<GameObject> cogGroupCameras = new List<GameObject>();
+    private CogMovie cogMovie;
 
     void Start()
     {
         battleCalculator = GetComponent<BattleCalculator>();
         battleCell = GetComponent<BattleCell>();
         throwMovie = GetComponent<ThrowMovie>();
+        cogMovie = GetComponent<CogMovie>();
     }
 
     public void MovieFinished()
@@ -86,10 +88,25 @@ public class BattleMovie : NetworkBehaviour
     [Server]
     void ExecuteCalculations()
     {
-        if(battleCalculator.track == GagTrack.THROW)
+        if(battleCell.battleState == BattleState.PLAYER_ATTACK)
         {
-            battleCalculator.ExecuteCalcThrow(battleCalcList);
+            if(battleCalculator.track == GagTrack.THROW)
+            {
+                battleCalculator.ExecuteCalcThrow(battleCalcList);
+            }
         }
+        else if(battleCell.battleState == BattleState.ENEMY_ATTACK)
+        {
+            if(battleCalculator.cogsAttackingList.Count > 0)
+            {
+                battleCalculator.CalcSingleCogAttack();
+            }
+            else
+            {
+                battleCalculator.RemoveDeadCogs();
+            }
+        }
+        
     }
 
     [Server]
@@ -113,7 +130,27 @@ public class BattleMovie : NetworkBehaviour
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
         throwMovie.StartThrowMovies(battleCalculations); // Starts CO on clients
+    }
 
+    [Server]
+    public void SendCogMovie(BattleCalculationCog battleCalculationCog)
+    {
+        clientsDone = 0;
+        moviesRemaining = 1; // sets movies remaining on server 
+
+        cogMovie.StartCogMovie(battleCalculationCog);
+
+        RpcCogMovie(battleCalculationCog); // Sends CO to clients
+    }
+
+    [ClientRpc]
+    void RpcCogMovie(BattleCalculationCog battleCalculationCog)
+    {
+        if(!isClientOnly) {return;} // Don't run on Host 
+
+        moviesRemaining = 1; // sets movies remaining on server 
+
+        cogMovie.StartCogMovie(battleCalculationCog); // Starts CO on clients
     }
 
     public GameObject GetToonFromIndex(int index)

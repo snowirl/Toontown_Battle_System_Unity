@@ -116,6 +116,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afa2d590c474413d9fc183551385ed85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &2504478704178604844
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7772986320470503093}
+  m_Layer: 0
+  m_Name: ParticleSpawnSpot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7772986320470503093
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2504478704178604844}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.04, z: 2.05}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8008257645110008498}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3111268072673642847
 GameObject:
   m_ObjectHideFlags: 0
@@ -768,6 +799,7 @@ Transform:
   - {fileID: 8542931398378491493}
   - {fileID: 8902394875685365168}
   - {fileID: 3799786132723992875}
+  - {fileID: 7772986320470503093}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -943,6 +975,7 @@ MonoBehaviour:
   hp: 11
   maxHp: 13
   level: 2
+  luredRounds: 0
   isLured: 0
   isTrapped: 0
   isDead: 0
@@ -977,6 +1010,7 @@ MonoBehaviour:
   yellowMat: {fileID: 2100000, guid: b3092c60e2e6030449be8c54985ea8a5, type: 2}
   greenMat: {fileID: 2100000, guid: 425764f7441e9034ea5e2e4f1f60473f, type: 2}
   blackMat: {fileID: 2100000, guid: 2bd1978b0ea94a64c80c11a97145d048, type: 2}
+  particleSpawnSpot: {fileID: 2504478704178604844}
 --- !u!114 &1823946674395555253
 MonoBehaviour:
   m_ObjectHideFlags: 0

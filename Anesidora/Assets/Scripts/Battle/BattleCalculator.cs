@@ -10,6 +10,7 @@ public class BattleCalculator : NetworkBehaviour
     public List<GagData> gagDatas = new List<GagData>();
     public BattleMovie battleMovie;
     public GagTrack track; // Which gag track are we calculating for?
+    public List<GameObject> cogsAttackingList = new List<GameObject>(); // see how many cogs are unlured or not dead to attack
 
     [Server]
     public void StartBattle()
@@ -328,12 +329,50 @@ public class BattleCalculator : NetworkBehaviour
         }
         else
         {
-            NextTrack();
+            if(battleCell.battleState == BattleState.PLAYER_ATTACK)
+            {
+                NextTrack();
+            }
+            else if(battleCell.battleState == BattleState.ENEMY_ATTACK)
+            {
+                // PlayerChoose();
+                RemoveDeadCogs();
+                print("IDK what to put here.");
+            }
         }
     }
 
     [Server]
-    void RemoveDeadCogs() // Called after both toons and cogs attacked
+    public void CheckIfToonsAreDead()
+    {
+        int toonsDead = 0;
+
+        foreach(GameObject g in battleCell.toons)
+        {
+            if(g.GetComponent<PlayerBattle>().hp <= 0)
+            {
+                print("Toon is dead.");
+                toonsDead++;
+            }
+        }
+
+        if(toonsDead >= battleCell.toons.Count)
+        {
+            if(battleCell.toonsPending.Count == 0)
+            {
+                print("All Toons are dead. And no Toons are pending. Battle should be over.");
+                Lose();
+            }
+            else
+            {
+                print("All Toons are dead. Toons are pending; Battle should continue.");
+                PlayerChoose();
+            }   
+        }
+    }
+
+    [Server]
+    public void RemoveDeadCogs() // Called after both toons and cogs attacked
     {
         var cogIdList = new List<uint>();
 
@@ -376,31 +415,112 @@ public class BattleCalculator : NetworkBehaviour
         battleCell.battleState = BattleState.ENEMY_ATTACK;
 
         print("Enemies attacking.");
+        
+        CheckIfCogsAreUnlured();
 
-        RemoveDeadCogs(); // back to player choose after attack // need to check if cogs died
+        CalcCogAttacks();
+
+        // RemoveDeadCogs(); // back to player choose after attack // need to check if cogs died
     }
 
     [Server]
-    void CalcCogAttacks()
+    void CheckIfCogsAreUnlured()
     {
-        List<BattleCalculationCog> battleCalculationCogList = new List<BattleCalculationCog>();
+        foreach(GameObject g in battleCell.cogs)
+        {
+            if(g.GetComponent<CogBattle>().isLured)
+            {
+                g.GetComponent<CogBattle>().luredRounds--;
+
+                if(g.GetComponent<CogBattle>().luredRounds <= 0)
+                {
+                    g.GetComponent<CogBattle>().isLured = false;
+                    g.GetComponent<CogBattle>().luredRounds = 0;
+                    print("Cog is unlured.");
+                }
+            }
+        }
+    }
+
+    [Server]
+    void CalcCogAttacks() // maybe one at a time in case the Toon dies so we can pick a new target...
+    {
+        cogsAttackingList.Clear();
 
         foreach(GameObject g in battleCell.cogs)
         {
-            var battleCalcCog = new BattleCalculationCog();
-            battleCalcCog.cogAttack = g.GetComponent<CogLoad>().cog.cogAttacks[Random.Range(0, g.GetComponent<CogLoad>().cog.cogAttacks.Count)];
-            battleCalcCog.dmg = battleCalcCog.cogAttack.damages[g.GetComponent<CogLoad>().level];
-            battleCalcCog.didHit = CalcCogAttackHit(battleCalcCog.cogAttack,g.GetComponent<CogLoad>().level - g.GetComponent<CogLoad>().cog.minCogLevel); // MINUS min cog level to get the right index for level
-
-            if(battleCalcCog.cogAttack.areaOfEffect)
+            if(!g.GetComponent<CogBattle>().isLured && !g.GetComponent<CogBattle>().isDead) // is not lured and is not dead
             {
-                battleCalcCog.whichTarget = -1; // -1 hits all toons
-            }
-            else
-            {
-                battleCalcCog.whichTarget = Random.Range(0, battleCell.toonIDs.Count);
+                cogsAttackingList.Insert(0, g);
             }
         }
+
+        if(cogsAttackingList.Count > 0)
+        {
+            CalcSingleCogAttack();
+        }
+        else
+        {
+            CheckIfCogsAreDead(); // prolly not
+        }
+    }
+
+    [Server]
+    public void CalcSingleCogAttack() // index = which Cog
+    {
+        var cog = cogsAttackingList[0];
+
+        cogsAttackingList.RemoveAt(0);
+
+        var battleCalculationCog = new BattleCalculationCog();
+        
+        var cogBattle = cog.GetComponent<CogBattle>();
+        var cogSO = cog.GetComponent<CogLoad>().cog;
+        int cogTierIndex = cogBattle.level - cogSO.minCogLevel;
+
+        battleCalculationCog.whichCog = battleCell.cogs.IndexOf(cog);
+        battleCalculationCog.cogAttack = cogSO.cogAttacks[Random.Range(0, cogSO.cogAttacks.Count)];
+
+        battleCalculationCog.dmg = battleCalculationCog.cogAttack.damages[cogTierIndex];
+
+        for(int i = 0; i < 4; i++) // get four probabilities if aoe attack
+        {
+            battleCalculationCog.didHitList.Add(CalcCogAttackHit(battleCalculationCog.cogAttack, cogBattle.level));
+        }
+
+        battleMovie.SendCogMovie(battleCalculationCog);
+    }
+
+    [Server]
+    public void ExecuteCogAttack(BattleCalculationCog battleCalculationCog) // one at a time for real time health updates
+    {
+        var b = battleCalculationCog;
+
+        if(b.cogAttack.areaOfEffect)
+        {
+            int index = 0;
+
+            print("Hitting all toons.");
+
+            foreach(GameObject g in battleCell.toons)
+            {
+                if(b.didHitList[index])
+                {
+                    g.GetComponent<PlayerBattle>().hp -= b.dmg;
+                }
+
+                index++;
+            }
+        }
+        else
+        {
+            if(b.didHitList[0])
+            {
+                battleCell.toons[b.whichTarget].GetComponent<PlayerBattle>().hp -= b.dmg;
+            }
+        }
+
+        print($"Cog attack: {b.cogAttack.attackName}, Target: {b.whichTarget}, Did Hit: {b.didHitList[0]}, Damage: {b.dmg}");
     }
 
     [Server]
@@ -419,6 +539,7 @@ public class BattleCalculator : NetworkBehaviour
             return false;
         }
     }
+
 
     [Server]
     public void Win()

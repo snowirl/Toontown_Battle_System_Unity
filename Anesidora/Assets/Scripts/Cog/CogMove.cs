@@ -45,6 +45,8 @@ public class CogMove : NetworkBehaviour
 
         float distance = Vector3.Distance(transform.position, patrolPoints[patrolIndex].position);
 
+        GetComponent<CogAnimate>().ChangeAnimationState("Walk");
+
         if(distance < 1f)
         {
             GoToNextPoint();

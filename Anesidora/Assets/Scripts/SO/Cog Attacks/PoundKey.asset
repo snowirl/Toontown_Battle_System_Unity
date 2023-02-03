@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18d88ddd912f5414c9c7c40dbac7c710, type: 3}
+  m_Name: PoundKey
+  m_EditorClassIdentifier: 
+  attackName: 4
+  damages: 0200000002000000030000000400000005000000
+  accuracy: 320000003c00000046000000500000005a000000
+  frequency: 050000000a0000000f0000001400000019000000
+  areaOfEffect: 0
+  propList: []
+  particleSystemPrefab: {fileID: 9017301629462438941, guid: e76fa7ed31412c6478e253463db55810,
+    type: 3}

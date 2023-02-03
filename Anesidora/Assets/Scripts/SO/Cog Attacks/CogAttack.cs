@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "CogAttack", menuName = "Toontown/CogAttack", order = 1)]
@@ -11,4 +13,4 @@ public class CogAttack : ScriptableObject
 
 }
 
-public enum AttackName {Canned, Dowsize, PinkSlip, FreezeAssets}
+public enum AttackName {Canned, Dowsize, PinkSlip, FreezeAssets, PoundKey}

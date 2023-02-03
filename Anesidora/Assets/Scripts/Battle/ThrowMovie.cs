@@ -147,6 +147,8 @@ public class ThrowMovie : NetworkBehaviour
         GameObject toon = battleMovie.GetToonFromIndex(battleCalculation.gagDataList[gagIndex].whichToon);
 
         GameObject cog = battleMovie.GetCogFromIndex(battleCalculation.gagDataList[gagIndex].whichTarget);
+        
+        toon.transform.LookAt(cog.transform);
 
         toon.GetComponent<PlayerAnimate>().StartCoroutine("BattleAnimate", "Throw");
 

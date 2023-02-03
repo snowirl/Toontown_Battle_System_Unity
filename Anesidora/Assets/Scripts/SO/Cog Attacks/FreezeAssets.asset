@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18d88ddd912f5414c9c7c40dbac7c710, type: 3}
   m_Name: FreezeAssets
   m_EditorClassIdentifier: 
-  cogAttack: 3
+  attackName: 3
   damages: 0100000003000000030000000500000005000000
   accuracy: 5a0000005a0000005a0000005a0000005a000000
   frequency: 050000000a0000000f0000001400000019000000
