@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using TMPro;
 
 public class PlayerAnimate : NetworkBehaviour
 {
     public string currentState;
     public PlayerLoad playerLoad;
     public GameObject pieSpot;
+    public GameObject damageText;
 
     public void ChangeAnimationState(string newState)
     {
@@ -56,5 +58,41 @@ public class PlayerAnimate : NetworkBehaviour
         print("Animation finished.");
 
         Animate("Idle");
+    }
+
+    public void CallAnimateDamageText(string message, string color) // 
+    {
+        LeanTween.cancelAll();
+        StopCoroutine("AnimateDamageText");
+        StartCoroutine(AnimateDamageText(message, color));
+    }
+
+    IEnumerator AnimateDamageText(string message, string color)
+    {
+        
+        CanvasGroup canvasGroup = damageText.GetComponent<CanvasGroup>();
+
+        LeanTween.alphaCanvas(canvasGroup, 0, 0);
+
+        damageText.GetComponentInChildren<TMP_Text>().text = message;
+
+        damageText.LeanMoveLocalY(-600, 0);
+
+        damageText.SetActive(true);
+
+        yield return new WaitForEndOfFrame();
+
+        damageText.LeanMoveLocalY(350, 1.75f).setEase(LeanTweenType.easeOutCubic);
+
+        LeanTween.alphaCanvas(canvasGroup, 1, .25f);
+
+        yield return new WaitForSeconds(2f);
+
+        LeanTween.alphaCanvas(canvasGroup, 0, .25f);
+
+        yield return new WaitForSeconds(.25f);
+
+        damageText.SetActive(false);
+
     }
 }

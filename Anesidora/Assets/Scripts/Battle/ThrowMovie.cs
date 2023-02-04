@@ -144,7 +144,7 @@ public class ThrowMovie : NetworkBehaviour
 
         ChangeCamera(1, battleCalculation.gagDataList[gagIndex].whichToon, battleCalculation.gagDataList[gagIndex].whichTarget);
 
-        GameObject toon = battleMovie.GetToonFromIndex(battleCalculation.gagDataList[gagIndex].whichToon);
+        GameObject toon = battleMovie.GetToonFromIndex(battleCalculation.gagDataList[gagIndex].whichToon, true);
 
         GameObject cog = battleMovie.GetCogFromIndex(battleCalculation.gagDataList[gagIndex].whichTarget);
         
@@ -205,17 +205,10 @@ public class ThrowMovie : NetworkBehaviour
             {
                 yield return cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit"); // Wait until Animation Finishes
             }
-
-            
-
         }
         else
         {
-            yield return new WaitForSeconds(.25f);
-
             ChangeCamera(2, battleCalculation.gagDataList[gagIndex].whichToon, battleCalculation.gagDataList[gagIndex].whichTarget);
-
-            yield return new WaitForSeconds(.1f);
 
             cog.GetComponent<CogAnimate>().CallAnimateDamageText($"Miss", "red");
 
@@ -400,11 +393,11 @@ public class ThrowMovie : NetworkBehaviour
         {
             if(gagsUsed > 1)
             {
-                battleMovie.SwitchCamera(battleMovie.GetRandomToonCamera(true, toonIndex));
+                battleMovie.SwitchCamera(battleMovie.GetRandomToonCamera(true, toonIndex, true));
             }
             else
             {
-                battleMovie.SwitchCamera(battleMovie.GetRandomToonCamera(false, toonIndex));
+                battleMovie.SwitchCamera(battleMovie.GetRandomToonCamera(false, toonIndex, true));
             }
             showedToonsCamera = true;
         }

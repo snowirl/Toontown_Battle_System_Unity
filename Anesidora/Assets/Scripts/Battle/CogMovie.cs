@@ -55,6 +55,8 @@ public class CogMovie : NetworkBehaviour
 
         var particles = Resources.Load<GameObject>("Particles/PoundKey");
 
+        ChangeCamera(2, battleCalculationCog.whichTarget, battleCalculationCog.whichCog, battleCalculationCog);
+
         cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PoundKey");
 
         yield return new WaitForSeconds(2.25f);
@@ -64,8 +66,70 @@ public class CogMovie : NetworkBehaviour
         tempParticles.transform.localPosition = Vector3.zero;
         tempParticles.transform.localRotation = Quaternion.Euler(0,0,0);
 
-        yield return new WaitForSeconds(2f);
+        ChangeCamera(1, battleCalculationCog.whichTarget, battleCalculationCog.whichCog, battleCalculationCog);
+
+        if(battleCalculationCog.didHitList[0])
+        {
+            yield return new WaitForSeconds(.5f);
+            toon.GetComponent<PlayerAnimate>().CallAnimateDamageText($"-{battleCalculationCog.dmg}", "red");
+            yield return toon.GetComponent<PlayerAnimate>().StartCoroutine("BattleAnimate", "Cringe");
+        }
+        else
+        {
+            yield return new WaitForSeconds(.15f);
+            toon.GetComponent<PlayerAnimate>().CallAnimateDamageText($"Miss", "red");
+            yield return toon.GetComponent<PlayerAnimate>().StartCoroutine("BattleAnimate", "SidestepLeft");
+        }
+
+        yield return new WaitForSeconds(.5f);
 
         Destroy(tempParticles);
+    }
+
+    void ChangeCamera(int phase, int toonIndex, int cogIndex, BattleCalculationCog battleCalculationCog) // 1 for toons cam, 1 for cogs cam
+    {
+        if(phase == 1)
+        {
+            if(showedToonsCamera)
+            {
+                return;
+            }
+        }
+        else if(phase == 2)
+        {
+            if(showedCogsCamera)
+            {
+                return;
+            }
+        }
+
+        if(phase == 1)
+        {
+            if(battleCalculationCog.cogAttack.areaOfEffect)
+            {
+                battleMovie.SwitchCamera(battleMovie.GetRandomToonCamera(true, toonIndex, false));
+            }
+            else
+            {
+                battleMovie.SwitchCamera(battleMovie.GetRandomToonCamera(false, toonIndex, false));
+            }
+            showedToonsCamera = true;
+        }
+        else if(phase == 2)
+        {
+            int rand = Random.Range(0, 2);
+
+            if(rand == 0)
+            {
+                battleMovie.SwitchCamera(battleMovie.GetRandomCogCamera(true, cogIndex));
+            }
+            else
+            {
+                battleMovie.SwitchCamera(battleMovie.GetRandomCogCamera(false, cogIndex));
+            }
+            showedCogsCamera = true;
+        }
+        
+        
     }
 }

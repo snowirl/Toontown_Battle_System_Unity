@@ -62,7 +62,7 @@ public class BattleCalculator : NetworkBehaviour
 
         if(gagDatas.Count >= battleCell.toons.Count)
         {
-            PlayerAttack(GagTrack.THROW);
+            PlayerAttack(GagTrack.LURE);
         }
 
     }
@@ -76,13 +76,181 @@ public class BattleCalculator : NetworkBehaviour
 
         battleCell.battleState = BattleState.PLAYER_ATTACK;
 
-        if(gagTrack == GagTrack.THROW)
+        if(gagTrack == GagTrack.LURE)
+        {
+            CalcLure();
+        }
+        else if(gagTrack == GagTrack.THROW)
         {
             CalcThrow();
         }
         else if(gagTrack == GagTrack.SQUIRT)
         {
             CalcSquirt();
+        }
+    }
+
+    [Server]
+    void CalcLure()
+    {
+        var battleCalculationList = new List<BattleCalculation>();
+
+        var lureList = new List<GagData>();
+
+        var cogOneList = new List<GagData>();
+        var cogTwoList = new List<GagData>();
+        var cogThreeList = new List<GagData>();
+        var cogFourList = new List<GagData>();
+        var cogAllList = new List<GagData>();
+
+        foreach(GagData g in gagDatas)
+        {
+            if(g.gag.gagTrack == GagTrack.LURE)
+            {
+                lureList.Add(g);
+                print("Found lure gag.");
+            }
+        }
+
+        if(lureList.Count == 0)
+        {
+            print("No LURE gags found. Moving on...");
+            NextTrack();
+            return;
+        }
+
+        foreach(GagData g in lureList)
+        {
+            if(g.whichTarget == 0)
+            {
+                cogOneList.Add(g);
+            }
+            else if(g.whichTarget == 1)
+            {
+                cogTwoList.Add(g);
+            }
+            else if(g.whichTarget == 2)
+            {
+                cogThreeList.Add(g);
+            }
+            else if(g.whichTarget == 3)
+            {
+                cogFourList.Add(g);
+            }
+            else if(g.whichTarget == -1)
+            {
+                cogAllList.Add(g);
+            }
+        }
+
+        for(int i = 0; i < 5; i++)
+        {
+            var cogList = new List<GagData>();
+
+            if(i == 0)
+            {
+                cogList = cogOneList;
+            }
+            else if(i == 1)
+            {
+                cogList = cogTwoList;
+            }
+            else if(i == 2)
+            {
+                cogList = cogThreeList;
+            }
+            else if(i == 3)
+            {
+                cogList = cogFourList;
+            }
+            else if(i == 3)
+            {
+                cogList = cogAllList;
+            }
+
+            if(cogList.Count > 1)
+            {
+                cogList = OrderGagList(cogList);
+            }
+            
+            if(cogList.Count > 0)
+            {
+                if(battleCell.cogs[i].GetComponent<CogBattle>().isDead)
+                {
+                    print("Cog is already dead, we can't attack him.");
+                    break; // Cog is dead, so we do not need to calculate this Battle Calculation // Might be in the wrong spot though.
+                }
+
+                var battleCalc = new BattleCalculation();
+
+                battleCalc.whichCog = i;
+
+                foreach(GagData g in cogList)
+                {
+                    battleCalc.gagDataList.Add(g);
+                }
+
+                var cogs = new List<GameObject>();
+
+                if(i == -1)
+                {
+                    foreach(GameObject g in battleCell.cogs)
+                    {
+                        if(!g.GetComponent<CogBattle>().isLured) // if we are not lured, then we are added to the list we hit
+                        {
+                            cogs.Add(g);
+                        }
+                    }
+                }
+                else
+                {
+                    cogs.Add(battleCell.cogs[i]);
+                }
+
+                battleCalc.didHit = CalculateLureHit(battleCalc.gagDataList, cogs);
+
+                battleCalculationList.Add(battleCalc);
+            }
+        }
+
+        // battleMovie.SendLureMovies(battleCalculationList);
+    }
+
+    [Server]
+    public void ExecuteCalcLure(List<BattleCalculation> battleCalculationList)
+    {
+        foreach(BattleCalculation b in battleCalculationList)
+        {
+            List<GameObject> whichCogs = new List<GameObject>();
+
+            int luredRounds = b.gagDataList[b.gagDataList.Count - 1].gag.power;
+
+            if(b.whichCog == -1)
+            {
+                foreach(GameObject g in battleCell.cogs)
+                {
+                    if(!g.GetComponent<CogBattle>().isLured)
+                    {
+                        whichCogs.Add(g);
+                    }
+                }
+            }
+            else
+            {
+                whichCogs.Add(battleCell.cogs[b.whichCog]);
+            }
+
+            if(b.didHit)
+            {
+                foreach(GameObject g in whichCogs)
+                {
+                    if(!g.GetComponent<CogBattle>().isTrapped)
+                    {
+                        g.GetComponent<CogBattle>().isLured = true;
+                        g.GetComponent<CogBattle>().luredRounds = luredRounds;
+                    }
+                }
+            }
         }
     }
 
@@ -324,7 +492,8 @@ public class BattleCalculator : NetworkBehaviour
             else
             {
                 print("All cogs are dead. Cogs are pending; Battle should continue.");
-                EnemyAttack();
+                // EnemyAttack();
+                RemoveDeadCogs();
             }   
         }
         else
@@ -399,7 +568,11 @@ public class BattleCalculator : NetworkBehaviour
     [Server]
     void NextTrack()
     {
-        if(track == GagTrack.THROW)
+        if(track == GagTrack.LURE)
+        {
+            PlayerAttack(GagTrack.THROW);
+        }
+        else if(track == GagTrack.THROW)
         {
             PlayerAttack(GagTrack.SQUIRT);
         }
@@ -549,6 +722,71 @@ public class BattleCalculator : NetworkBehaviour
         RemoveDeadCogs(); // Might need to call here too
 
         print("Toons win.");
+
+        RpcVictoryMovie();
+    }
+
+    [ClientRpc]
+    void RpcVictoryMovie()
+    {
+        StartCoroutine(Victory());
+    }
+
+    IEnumerator Victory()
+    {
+        foreach(GameObject g in battleCell.toons)
+        {
+            g.GetComponent<PlayerAnimate>().ChangeAnimationState("Dance");
+        }
+
+        yield return new WaitForSeconds(5f);
+
+        if(isServer)
+        {
+            EndBattle();
+        }
+    }
+
+    [Server]
+    void EndBattle()
+    {
+        print("Battle ended.");
+
+        battleCell.battleState = BattleState.IDLE;
+        battleCell.colliderEnabled = false;
+        battleCell.toons.Clear();
+        battleCell.toonIDs.Clear();
+        battleCell.cogs.Clear();
+
+        foreach(GameObject g in battleCell.toons)
+        {
+            TargetEnableMovement(g.GetComponent<NetworkIdentity>().connectionToClient);
+        }
+
+        if(isServer && isClient)
+        {
+            NetworkClient.localPlayer.gameObject.GetComponent<PlayerMove>().EnableMovement();
+
+            var cam = Camera.main.gameObject;
+            cam.SetActive(false);
+            cam.SetActive(true);
+            NetworkClient.localPlayer.gameObject.GetComponent<PlayerBattle>().battleCell = null;
+            battleMovie.battleCamera.SetActive(false);
+            battleMovie.SwitchCamera(null);
+        }
+    }
+
+    [TargetRpc]
+    void TargetEnableMovement(NetworkConnection conn)
+    {
+        print("Called target");
+        NetworkClient.localPlayer.gameObject.GetComponent<PlayerMove>().EnableMovement();
+        var cam = Camera.main.gameObject;
+        cam.SetActive(false);
+        cam.SetActive(true);
+        NetworkClient.localPlayer.gameObject.GetComponent<PlayerBattle>().battleCell = null;
+        battleMovie.battleCamera.SetActive(false);
+        battleMovie.SwitchCamera(null); // turn off all the cameras after battle is over.
     }
 
     [Server]
@@ -558,6 +796,7 @@ public class BattleCalculator : NetworkBehaviour
 
         print("Cogs win.");
     }
+
 
     [Server]
     private bool CalculateAttackHit(List<GagData> gagDatas, List<GameObject> targets)
@@ -625,6 +864,49 @@ public class BattleCalculator : NetworkBehaviour
         }
 
         print($"ATTACK ACCURACY: {atkAcc} --- PROPACC: {propAcc}");
+
+        if(atkAcc > rand)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool CalculateLureHit(List<GagData> gagDatas, List<GameObject> targets)
+    {
+        int rand = Random.Range(0,100);
+
+        int highestGagLevel = 0;
+        int highestCogLevel = 0;
+        int propAcc = 0;
+        bool trapBonus = false;
+
+        foreach(GagData g in gagDatas)
+        {
+            if(g.gag.gagLevel >= highestGagLevel)
+            {
+                highestGagLevel = g.gag.gagLevel;
+
+                propAcc = g.gag.acc;
+            }
+        }
+
+        foreach(GameObject g in targets)
+        {
+            if(g.GetComponent<CogBattle>().level > highestCogLevel)
+            {
+                highestCogLevel = g.GetComponent<CogBattle>().level;
+            }
+        }
+
+        int atkAcc = propAcc + ((highestGagLevel) * 10) + tgtDef[highestCogLevel] + (trapBonus ? 20 : 0);
+
+        if(atkAcc > 95) {atkAcc = 95;}
+
+        print($"LURE ACCURACY: {atkAcc} --- TRAP BONUS: {trapBonus}");
 
         if(atkAcc > rand)
         {

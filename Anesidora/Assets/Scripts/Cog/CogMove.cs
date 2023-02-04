@@ -41,8 +41,6 @@ public class CogMove : NetworkBehaviour
             return;
         }
 
-        print(patrolPoints.Length);
-
         float distance = Vector3.Distance(transform.position, patrolPoints[patrolIndex].position);
 
         GetComponent<CogAnimate>().ChangeAnimationState("Walk");

@@ -153,9 +153,19 @@ public class BattleMovie : NetworkBehaviour
         cogMovie.StartCogMovie(battleCalculationCog); // Starts CO on clients
     }
 
-    public GameObject GetToonFromIndex(int index)
+    public GameObject GetToonFromIndex(int index, bool isToonIDIndex) // check if we are searching with net ID or regular index
     {
-        int toonIndex = battleCell.toonIDs.IndexOf((uint)index);
+        int toonIndex = 0;
+
+        if(isToonIDIndex)
+        {
+            toonIndex = battleCell.toonIDs.IndexOf((uint)index);
+        }
+        else
+        {
+            toonIndex = index;
+        }
+        
 
         return battleCell.toons[toonIndex];
     }
@@ -165,7 +175,7 @@ public class BattleMovie : NetworkBehaviour
         return battleCell.cogs[index];
     }
 
-    public GameObject GetRandomToonCamera(bool isMultiple, int toonIndex)
+    public GameObject GetRandomToonCamera(bool isMultiple, int toonIndex, bool isToonIDIndex)
     {
         if(isMultiple)
         {
@@ -183,8 +193,8 @@ public class BattleMovie : NetworkBehaviour
             {
                 GameObject newCam = toonCameras[Random.Range(0, toonCameras.Count)];
 
-                newCam.GetComponent<CinemachineVirtualCamera>().LookAt = GetToonFromIndex(toonIndex).transform;
-                newCam.GetComponent<CinemachineVirtualCamera>().Follow = GetToonFromIndex(toonIndex).transform;
+                newCam.GetComponent<CinemachineVirtualCamera>().LookAt = GetToonFromIndex(toonIndex, isToonIDIndex).transform;
+                newCam.GetComponent<CinemachineVirtualCamera>().Follow = GetToonFromIndex(toonIndex, isToonIDIndex).transform;
 
                 return newCam;
             }
@@ -220,7 +230,7 @@ public class BattleMovie : NetworkBehaviour
         }
     }
 
-    public void SwitchCamera(GameObject newCam)
+    public void SwitchCamera(GameObject newCam) // sending null when we are done with the battle cameras
     {
         foreach(GameObject g in toonCameras)
         {
@@ -242,6 +252,14 @@ public class BattleMovie : NetworkBehaviour
             g.SetActive(false);
         }
 
-        newCam.SetActive(true);
+        if(newCam == null)
+        {
+            // do nothing
+        }
+        else
+        {
+            newCam.SetActive(true);
+        }
+        
     }
 }
