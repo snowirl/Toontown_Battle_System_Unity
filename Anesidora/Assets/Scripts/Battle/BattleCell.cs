@@ -268,6 +268,11 @@ public class BattleCell : NetworkBehaviour
         int index = 0;
 
         UpdatePositions(); 
+
+        foreach(GameObject g in cogs)
+        {
+            StopCoroutine("MoveCogToBattleCell");
+        }
         
         foreach(GameObject g in cogs)
         {
@@ -386,6 +391,17 @@ public class BattleCell : NetworkBehaviour
         float distance = Vector3.Distance(cog.transform.position,pos);
         var step = (5) * Time.deltaTime;
 
+        float maxTime = 5f;
+        float time = 0;
+
+        if(!isPending)
+        {
+            if(cog.GetComponent<CogBattle>().isLured)
+            {
+                pos = new Vector3(battlePos.x - 2, battlePos.y + 1, battlePos.z); // for lured position
+            }
+        }
+
         cog.transform.LookAt(new Vector3(battlePos.x, cog.transform.position.y, battlePos.z));
 
         if(distance > .25f)
@@ -393,10 +409,11 @@ public class BattleCell : NetworkBehaviour
             cog.GetComponent<CogAnimate>().ChangeAnimationState("Walk");
         }
 
-        while(distance > .25f)
+        while(distance > .25f && time < maxTime)
         {
             distance = Vector3.Distance(cog.transform.position, pos);
             cog.transform.position = Vector3.MoveTowards(cog.transform.position, pos, step);
+            time += Time.deltaTime;
             yield return null;
         }
 
@@ -405,7 +422,14 @@ public class BattleCell : NetworkBehaviour
 
         cog.transform.LookAt(new Vector3(toonPendingPositions[0].position.x, cog.transform.position.y,cogPendingPositions[0].position.z));
 
-        cog.GetComponent<CogAnimate>().ChangeAnimationState("Idle");
+        if(cog.GetComponent<CogBattle>().isLured)
+        {
+            cog.GetComponent<CogAnimate>().ChangeAnimationState("Lured");
+        }
+        else
+        {
+            cog.GetComponent<CogAnimate>().ChangeAnimationState("Idle");
+        }
         
         CogReady(cog, isPending);
     }
@@ -457,6 +481,23 @@ public class BattleCell : NetworkBehaviour
             if(battleState == BattleState.START)
             {
                 BattleStart(); // Check if battle can start.
+            }
+            else
+            {
+                if(battleState == BattleState.PLAYER_CHOOSE)
+                {
+                    int cogIndex = cogs.IndexOf(cog);
+
+                    if(cog.GetComponent<CogBattle>().isLured)
+                    {
+                        cog.transform.position = new Vector3(cogPositions[cogIndex].transform.position.x - 2, cogPositions[cogIndex].transform.position.y + 1, cogPositions[cogIndex].transform.position.z);
+                    }
+                    else
+                    {
+                        cog.transform.position = new Vector3(cogPositions[cogIndex].transform.position.x, cogPositions[cogIndex].transform.position.y + 1, cogPositions[cogIndex].transform.position.z);
+                    }
+                    
+                }
             }
         }
     }

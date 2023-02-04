@@ -55,24 +55,6 @@ public class ThrowMovie : NetworkBehaviour
 
         yield return StartCoroutine(UseSingleThrowGag(battleCalculation, numOfGags)); // wait for the last gag to finish
 
-        // if(battleCalculation.gagDataList.Count > 1)
-        // {
-        //     int teamBonus = 0;
-
-        //     foreach(GagData g in battleCalculation.gagDataList)
-        //     {
-        //         teamBonus += g.gag.power;
-        //     }
-
-        //     teamBonus = (int)(teamBonus * 1.2f);
-
-        //     GameObject cog = battleMovie.GetCogFromIndex(battleCalculation.gagDataList[0].whichTarget); // should be okay to ask index 0 since all will hit same
-        //     // more than one gag used, so show Team Bonus Damage
-        //     cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{teamBonus}");
-        // }
-
-
-        // tried to put team bonus here, was very late 
 
         print("Throw movie completed.");
 
@@ -180,7 +162,7 @@ public class ThrowMovie : NetworkBehaviour
 
             cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{battleCalculation.gagDataList[gagIndex].gag.power}", "red");
 
-            ChangeCogHealthButton(battleCalculation, gagIndex, cog);
+            ChangeCogHealthButton(battleCalculation, gagIndex, cog, false);
 
             StopCoroutine("Splat");
 
@@ -192,13 +174,44 @@ public class ThrowMovie : NetworkBehaviour
                 {
                     print("More than one gag was used in this movie.");
                     cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit");
-                    yield return new WaitForSeconds(1f);
+
+                    yield return new WaitForSeconds(.24f);
+
+                    if(cog.GetComponent<CogBattle>().isLured)
+                    {
+                        cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "Knockback");
+                        cog.LeanMoveX(cog.transform.position.x + 2, .5f);
+                        yield return new WaitForSeconds(.5f);
+                        cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{GetLureDamage(battleCalculation)}", "orange");
+                        ChangeCogHealthButton(battleCalculation, gagIndex, cog, true);
+                    }
+
+                    yield return new WaitForSeconds(.75f);
+
+                    
                     cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{GetKnockbackDamage(battleCalculation)}", "yellow");
-                    yield return new WaitForSeconds(2f);
+                    yield return new WaitForSeconds(.5f);
                 }
                 else
                 {
-                    yield return cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit"); // Wait until Animation Finishes
+
+                    if(cog.GetComponent<CogBattle>().isLured)
+                    {
+                        cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit");
+                        yield return new WaitForSeconds(.24f);
+                        cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "Knockback");
+                        cog.LeanMoveX(cog.transform.position.x + 2, .5f);
+                        yield return new WaitForSeconds(.5f);
+                        ChangeCogHealthButton(battleCalculation, gagIndex, cog, true);
+                        cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{GetLureDamage(battleCalculation)}", "orange");
+                        yield return new WaitForSeconds(1.5f);
+                    }
+                    else
+                    {
+                        yield return cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PieHit"); // Wait until Animation Finishes
+                    }
+
+                    
                 }
             }
             else
@@ -230,26 +243,43 @@ public class ThrowMovie : NetworkBehaviour
 
     int GetLureDamage(BattleCalculation battleCalculation)
     {
-        int dmg = 0;
+        float dmg = 0;
 
         foreach(GagData g in battleCalculation.gagDataList)
         {
-            g.gag.power += dmg;
+            dmg += g.gag.power;
         }
 
         return (int)(dmg * .5f);
     }
 
-    void ChangeCogHealthButton(BattleCalculation battleCalculation, int gagIndex, GameObject target)
+    void ChangeCogHealthButton(BattleCalculation battleCalculation, int gagIndex, GameObject target, bool isLured)
     {
         int dmg = 0;
+        int totalDmg = 0;
+        float teamBonus = 0;
+        float lureBonus = 0;
+        int gagsUsed = 0;
 
         for (int i = 0; i < gagIndex + 1; i++)
         {
             dmg += battleCalculation.gagDataList[i].gag.power;
+            gagsUsed++;
         }
 
-        target.GetComponent<CogAnimate>().ChangeHealthButton(dmg);
+        if(gagsUsed > 1)
+        {
+            teamBonus = .2f;
+        }
+
+        if(isLured)
+        {
+            lureBonus = .5f;
+        }
+
+        totalDmg = (int)(dmg + (dmg * teamBonus) + (dmg * lureBonus));
+
+        target.GetComponent<CogAnimate>().ChangeHealthButton(totalDmg);
     }
 
     IEnumerator ThrowMissMovie(GameObject cog, int cogIndex)
@@ -367,6 +397,11 @@ public class ThrowMovie : NetworkBehaviour
 
     void ChangeCamera(int phase, int toonIndex, int cogIndex) // 1 for toons cam, 1 for cogs cam
     {
+        if(!battleCell.toons.Contains(NetworkClient.localPlayer.gameObject))
+        {
+            return; // client is not in battle so we do not change cameras
+        }
+
         if(phase == 1)
         {
             if(showedToonsCamera)

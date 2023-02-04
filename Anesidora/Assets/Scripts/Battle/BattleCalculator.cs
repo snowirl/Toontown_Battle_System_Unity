@@ -103,6 +103,8 @@ public class BattleCalculator : NetworkBehaviour
         var cogFourList = new List<GagData>();
         var cogAllList = new List<GagData>();
 
+        bool allLuredUsed = false;
+
         foreach(GagData g in gagDatas)
         {
             if(g.gag.gagTrack == GagTrack.LURE)
@@ -149,23 +151,23 @@ public class BattleCalculator : NetworkBehaviour
 
             if(i == 0)
             {
-                cogList = cogOneList;
+                cogList = cogAllList;
             }
             else if(i == 1)
             {
-                cogList = cogTwoList;
+                cogList = cogOneList;
             }
             else if(i == 2)
             {
+                cogList = cogTwoList;
+            }
+            else if(i == 3)
+            {
                 cogList = cogThreeList;
             }
-            else if(i == 3)
+            else if(i == 4)
             {
                 cogList = cogFourList;
-            }
-            else if(i == 3)
-            {
-                cogList = cogAllList;
             }
 
             if(cogList.Count > 1)
@@ -175,15 +177,19 @@ public class BattleCalculator : NetworkBehaviour
             
             if(cogList.Count > 0)
             {
-                if(battleCell.cogs[i].GetComponent<CogBattle>().isDead)
+                if(cogList[0].whichTarget != -1)
                 {
-                    print("Cog is already dead, we can't attack him.");
-                    break; // Cog is dead, so we do not need to calculate this Battle Calculation // Might be in the wrong spot though.
+                    if(battleCell.cogs[cogList[0].whichTarget].GetComponent<CogBattle>().isDead)
+                    {
+                        print("Cog is already dead, we can't attack him.");
+                        break; // Cog is dead, so we do not need to calculate this Battle Calculation // Might be in the wrong spot though.
+                    }
                 }
+                
 
                 var battleCalc = new BattleCalculation();
 
-                battleCalc.whichCog = i;
+                battleCalc.whichCog = cogList[0].whichTarget;
 
                 foreach(GagData g in cogList)
                 {
@@ -192,7 +198,7 @@ public class BattleCalculator : NetworkBehaviour
 
                 var cogs = new List<GameObject>();
 
-                if(i == -1)
+                if(i == 0)
                 {
                     foreach(GameObject g in battleCell.cogs)
                     {
@@ -204,16 +210,35 @@ public class BattleCalculator : NetworkBehaviour
                 }
                 else
                 {
-                    cogs.Add(battleCell.cogs[i]);
+                    cogs.Add(battleCell.cogs[battleCalc.whichCog]);
                 }
 
-                battleCalc.didHit = CalculateLureHit(battleCalc.gagDataList, cogs);
+                if(i == 0)
+                {
+                    battleCalc.didHit = CalculateLureHit(battleCalc.gagDataList, cogs);
+                    print("An AoE lure was used");
+                    allLuredUsed = true;
+                }
+                else
+                {
+                    if(allLuredUsed)
+                    {
+                        print("An AoE lure was used but we are not in that group, so we get the AoE lure accuracy.");
+                        battleCalc.didHit = battleCalculationList[0].didHit;
+                    }
+                    else
+                    {
+                        battleCalc.didHit = CalculateLureHit(battleCalc.gagDataList, cogs);
+                    }
+                    
+                }
+                
 
                 battleCalculationList.Add(battleCalc);
             }
         }
 
-        // battleMovie.SendLureMovies(battleCalculationList);
+        battleMovie.SendLureMovies(battleCalculationList);
     }
 
     [Server]
@@ -252,6 +277,8 @@ public class BattleCalculator : NetworkBehaviour
                 }
             }
         }
+
+        CheckIfCogsAreDead();
     }
 
     [Server]
@@ -603,13 +630,16 @@ public class BattleCalculator : NetworkBehaviour
         {
             if(g.GetComponent<CogBattle>().isLured)
             {
-                g.GetComponent<CogBattle>().luredRounds--;
 
                 if(g.GetComponent<CogBattle>().luredRounds <= 0)
                 {
                     g.GetComponent<CogBattle>().isLured = false;
                     g.GetComponent<CogBattle>().luredRounds = 0;
                     print("Cog is unlured.");
+                }
+                else
+                {
+                    g.GetComponent<CogBattle>().luredRounds--;
                 }
             }
         }
@@ -908,14 +938,16 @@ public class BattleCalculator : NetworkBehaviour
 
         print($"LURE ACCURACY: {atkAcc} --- TRAP BONUS: {trapBonus}");
 
-        if(atkAcc > rand)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        // if(atkAcc > rand)
+        // {
+        //     return true;
+        // }
+        // else
+        // {
+        //     return false;
+        // }
+
+        return true; // RETURNING TRUE FOR TEST PURPOSES RIGHT NOW
     }
 
     [TargetRpc]

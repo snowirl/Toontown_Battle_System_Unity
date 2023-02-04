@@ -53,6 +53,14 @@ public class CogAnimate : NetworkBehaviour
         Animate("Idle");
     }
 
+    public IEnumerator WaitForAnimation()
+    {
+        while(cogAnim.GetCurrentAnimatorStateInfo(0).normalizedTime < 1.0f)
+        {
+            yield return null;
+        }
+    }
+
     public IEnumerator ExplodeCog()
     {
         suit.SetActive(false);
@@ -159,6 +167,8 @@ public class CogAnimate : NetworkBehaviour
         }
 
         cogHealthButton.GetComponent<Renderer>().material = mat;
+
+        print("HP: " + hp + ", " + "MAX HP: " + maxHp);
     }
 
     IEnumerator RedBlinking()

@@ -9,7 +9,6 @@ public class CogMovie : NetworkBehaviour
     private BattleCell battleCell;
     private BattleCalculator battleCalculator;
     bool showedToonsCamera, showedCogsCamera;
-    public List<GameObject> particleSystemPrefabs = new List<GameObject>();
     void Start()
     {
         battleMovie = GetComponent<BattleMovie>();

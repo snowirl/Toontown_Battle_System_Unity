@@ -19,6 +19,7 @@ public class BattleMovie : NetworkBehaviour
     public List<GameObject> cogCameras = new List<GameObject>();
     public List<GameObject> cogGroupCameras = new List<GameObject>();
     private CogMovie cogMovie;
+    private LureMovie lureMovie;
 
     void Start()
     {
@@ -26,6 +27,7 @@ public class BattleMovie : NetworkBehaviour
         battleCell = GetComponent<BattleCell>();
         throwMovie = GetComponent<ThrowMovie>();
         cogMovie = GetComponent<CogMovie>();
+        lureMovie = GetComponent<LureMovie>();
     }
 
     public void MovieFinished()
@@ -90,7 +92,11 @@ public class BattleMovie : NetworkBehaviour
     {
         if(battleCell.battleState == BattleState.PLAYER_ATTACK)
         {
-            if(battleCalculator.track == GagTrack.THROW)
+            if(battleCalculator.track == GagTrack.LURE)
+            {
+                battleCalculator.ExecuteCalcLure(battleCalcList);
+            }
+            else if(battleCalculator.track == GagTrack.THROW)
             {
                 battleCalculator.ExecuteCalcThrow(battleCalcList);
             }
@@ -108,6 +114,7 @@ public class BattleMovie : NetworkBehaviour
         }
         
     }
+
 
     [Server]
     public void SendThrowMovies(List<BattleCalculation> battleCalculations)
@@ -130,6 +137,28 @@ public class BattleMovie : NetworkBehaviour
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
         throwMovie.StartThrowMovies(battleCalculations); // Starts CO on clients
+    }
+
+    [Server]
+    public void SendLureMovies(List<BattleCalculation> battleCalculations)
+    {
+        battleCalcList = battleCalculations; // Give the server the battle calculations it needs to send back
+        clientsDone = 0;
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        lureMovie.StartLureMovies(battleCalculations); // Starts CO on server
+
+        RpcLureMovies(battleCalculations); // Sends CO to clients
+    }
+
+    [ClientRpc]
+    void RpcLureMovies(List<BattleCalculation> battleCalculations)
+    {
+        if(!isClientOnly) {return;} // Don't run on Host 
+
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        lureMovie.StartLureMovies(battleCalculations); // Starts CO on clients
     }
 
     [Server]
@@ -232,6 +261,11 @@ public class BattleMovie : NetworkBehaviour
 
     public void SwitchCamera(GameObject newCam) // sending null when we are done with the battle cameras
     {
+        if(isClientOnly && !battleCell.toons.Contains(NetworkClient.localPlayer.gameObject))
+        {
+            return; // client is not in battle so we do not change cameras
+        }
+
         foreach(GameObject g in toonCameras)
         {
             g.SetActive(false);
@@ -262,4 +296,5 @@ public class BattleMovie : NetworkBehaviour
         }
         
     }
+    
 }

@@ -10,6 +10,7 @@ public class BattleUIManager : MonoBehaviour
     public GameObject battleUI, gagPanel, cogSelectPanel;
     public GameObject[] toonHps, cogHps, cogSelectButtons;
     public List<Gag>throwGags = new List<Gag>();
+    public List<Gag>lureGags = new List<Gag>();
     private Gag gagSelected;
     private int cogSelected;
 
@@ -64,6 +65,26 @@ public class BattleUIManager : MonoBehaviour
     public void SelectThrowGag(int val)
     {
         gagSelected = throwGags[val];
+
+        if(gagSelected.attackAll)
+        {
+            cogSelected = -1;
+            SendGagData();
+        }
+        else if(localPlayer.GetComponent<PlayerBattle>().battleCell.GetComponent<BattleCell>().cogs.Count < 2)
+        {
+            cogSelected = 0;
+            SendGagData();
+        }
+        else
+        {
+            ShowSelectCogPanel();
+        }
+    }
+
+    public void SelectLureGag(int val)
+    {
+        gagSelected = lureGags[val];
 
         if(gagSelected.attackAll)
         {
