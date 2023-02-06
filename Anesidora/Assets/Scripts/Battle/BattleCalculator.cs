@@ -85,6 +85,10 @@ public class BattleCalculator : NetworkBehaviour
         {
             CalcLure();
         }
+        else if(gagTrack == GagTrack.SOUND)
+        {
+            CalcSound();
+        }
         else if(gagTrack == GagTrack.THROW)
         {
             CalcThrow();
@@ -463,6 +467,92 @@ public class BattleCalculator : NetworkBehaviour
     }
 
     [Server]
+    void CalcSound()
+    {
+        var battleCalculationList = new List<BattleCalculation>();
+
+        var soundList = new List<GagData>();
+
+        foreach(GagData g in gagDatas)
+        {
+            if(g.gag.gagTrack == GagTrack.SOUND)
+            {
+                soundList.Add(g);
+                print("Found SOUND gag.");
+            }
+        }
+
+        if(soundList.Count == 0)
+        {
+            print("No SOUND gags found. Moving on...");
+            NextTrack();
+            return;
+        }
+
+        if(soundList.Count > 1)
+        {
+            soundList = OrderGagList(soundList);
+        }
+
+        if(soundList.Count > 0)
+        {
+            var battleCalc = new BattleCalculation();
+
+            battleCalc.whichCog = -1;
+
+            foreach(GagData g in soundList)
+            {
+                battleCalc.gagDataList.Add(g);
+            }
+
+            battleCalc.didHit = CalculateAttackHit(battleCalc.gagDataList, battleCell.cogs);
+
+            battleCalculationList.Add(battleCalc);
+        }
+
+        battleMovie.SendSoundMovies(battleCalculationList);
+    }
+
+    [Server]
+    public void ExecuteCalcSound(List<BattleCalculation> battleCalculationList)
+    {
+        foreach(BattleCalculation b in battleCalculationList)
+        {
+            int index = 0;
+            float teamBonus = 0;
+            int dmg = 0;
+
+            foreach(GagData g in b.gagDataList)
+            {
+                dmg += g.gag.power;
+            }
+
+            if(b.gagDataList.Count > 1)
+            {
+                teamBonus = .2f;
+            }
+
+            int totalDmgTaken = (int)(dmg + (float)(dmg * teamBonus));
+
+            foreach(GameObject g in battleCell.cogs)
+            {
+                GameObject whichCog = battleCell.cogs[index];
+                var cogBattle = whichCog.GetComponent<CogBattle>();
+
+                if(b.didHit)
+                {
+                    cogBattle.hp -= totalDmgTaken;
+                    cogBattle.isLured = false;
+                }
+
+                index++;
+            }
+        }
+
+        CheckIfCogsAreDead();
+    }
+
+    [Server]
     void CalcThrow()
     {
         var battleCalculationList = new List<BattleCalculation>();
@@ -564,6 +654,12 @@ public class BattleCalculator : NetworkBehaviour
         } 
 
         // Need to check if BattleCalc list is null, and if it is, we move on to the next track.
+        if(battleCalculationList.Count == 0)
+        {
+            print("No Throw gags found. Moving on...");
+            NextTrack();
+            return;
+        }
 
         battleMovie.SendThrowMovies(battleCalculationList);
     }
@@ -781,6 +877,10 @@ public class BattleCalculator : NetworkBehaviour
             PlayerAttack(GagTrack.LURE);
         }
         else if(track == GagTrack.LURE)
+        {
+            PlayerAttack(GagTrack.SOUND);
+        }
+        else if(track == GagTrack.SOUND)
         {
             PlayerAttack(GagTrack.THROW);
         }
@@ -1041,7 +1141,10 @@ public class BattleCalculator : NetworkBehaviour
         {
             if(g.GetComponent<CogBattle>().level > highestCogLevel)
             {
-                highestCogLevel = g.GetComponent<CogBattle>().level;
+                if(!g.GetComponent<CogBattle>().isDead) // check if cog is dead 
+                {
+                    highestCogLevel = g.GetComponent<CogBattle>().level;
+                }
             }
 
             if(g.GetComponent<CogBattle>().isLured)

@@ -8,7 +8,7 @@ public class PlayerAnimate : NetworkBehaviour
 {
     public string currentState;
     public PlayerLoad playerLoad;
-    public GameObject pieSpot;
+    public GameObject pieSpot, leftHandSpot;
     public GameObject damageText;
 
     public void ChangeAnimationState(string newState)
@@ -65,6 +65,11 @@ public class PlayerAnimate : NetworkBehaviour
         LeanTween.cancelAll();
         StopCoroutine("AnimateDamageText");
         StartCoroutine(AnimateDamageText(message, color));
+    }
+
+    public Transform GetLeftHand()
+    {
+        return leftHandSpot.transform;
     }
 
     IEnumerator AnimateDamageText(string message, string color)

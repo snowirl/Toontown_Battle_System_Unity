@@ -11,6 +11,9 @@ public class PlayerMove : NetworkBehaviour
     private Vector3 velocity;
     private float gravity = -70f;
     private float horizontal, vertical;
+    public AudioSource runAudioSource;
+    public AudioClip runClip, walkClip;
+    private string audioState;
 
     #endregion
 
@@ -121,29 +124,76 @@ public class PlayerMove : NetworkBehaviour
         
         if(!isGrounded)
         {
+            PlayAudio("None");
+
             if(playerAnimate.currentState != "Leap" && playerAnimate.currentState != "Jump")
             {
-                if(direction.y != 0)
-                    playerAnimate.ChangeAnimationState("Leap");
-                else
-                    playerAnimate.ChangeAnimationState("Jump");
+                RaycastHit hit;
+                bool didHit = false;
+
+                if(physicsScene.Raycast(GroundCheck.position, Vector3.down, out hit, 1f, groundLayer))
+                {
+                    print("Did hit!");
+                    didHit = true;
+                }
+
+                if(!didHit)
+                {
+                    if(direction.y != 0)
+                        playerAnimate.ChangeAnimationState("Leap");
+                    else
+                        playerAnimate.ChangeAnimationState("Jump");
+                }
             }
+                
         }
         else if(direction.y == 1)
         {
+            PlayAudio("Running");
             playerAnimate.ChangeAnimationState("Run");
         }
         else if(direction.y == -1)
         {
+            PlayAudio("Walking");
             playerAnimate.ChangeAnimationState("Walk");
         }
         else if(direction.x != 0)
         {
+            PlayAudio("Walking");
             playerAnimate.ChangeAnimationState("Turn");
         }
         else
         {
+            PlayAudio("None");
             playerAnimate.ChangeAnimationState("Idle");
+        }
+    }
+
+    private void PlayAudio(string audioState)
+    {
+        if(audioState == "Running")
+        {
+            if(!runAudioSource.isPlaying || runAudioSource.clip != runClip)
+            {
+                runAudioSource.clip = runClip;
+                runAudioSource.Play();
+            }
+        }
+        else if(audioState == "Walking")
+        {
+            if(!runAudioSource.isPlaying || runAudioSource.clip != walkClip)
+            {
+                runAudioSource.clip = walkClip;
+                runAudioSource.Play();
+            }
+        }
+        else if(audioState == "None")
+        {
+            if(runAudioSource.isPlaying)
+            {
+                runAudioSource.clip = null;
+                runAudioSource.Stop();
+            }
         }
     }
 }

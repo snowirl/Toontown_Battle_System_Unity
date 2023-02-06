@@ -21,6 +21,7 @@ public class BattleMovie : NetworkBehaviour
     private CogMovie cogMovie;
     private LureMovie lureMovie;
     private TrapMovie trapMovie;
+    private SoundMovie soundMovie;
     public bool lureCompleted; // check if we already completed lure so we can check trap next time around
 
     void Start()
@@ -31,6 +32,7 @@ public class BattleMovie : NetworkBehaviour
         cogMovie = GetComponent<CogMovie>();
         lureMovie = GetComponent<LureMovie>();
         trapMovie = GetComponent<TrapMovie>();
+        soundMovie = GetComponent<SoundMovie>();
     }
 
     public void MovieFinished()
@@ -110,6 +112,10 @@ public class BattleMovie : NetworkBehaviour
                     battleCalculator.ExecuteCalcTrapEnd();
                 }
                 
+            }
+            else if(battleCalculator.track == GagTrack.SOUND)
+            {
+                battleCalculator.ExecuteCalcSound(battleCalcList);
             }
             else if(battleCalculator.track == GagTrack.THROW)
             {
@@ -197,6 +203,29 @@ public class BattleMovie : NetworkBehaviour
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
         trapMovie.StartTrapMovies(battleCalculations); // Starts CO on clients
+    }
+
+    [Server]
+    public void SendSoundMovies(List<BattleCalculation> battleCalculations)
+    {
+        battleCalcList = battleCalculations; // Give the server the battle calculations it needs to send back
+
+        clientsDone = 0;
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        soundMovie.StartSoundMovies(battleCalculations); // Starts CO on server
+
+        RpcSoundMovies(battleCalculations); // Sends CO to clients
+    }
+
+    [ClientRpc]
+    void RpcSoundMovies(List<BattleCalculation> battleCalculations)
+    {
+        if(!isClientOnly) {return;} // Don't run on Host 
+
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        soundMovie.StartSoundMovies(battleCalculations); // Starts CO on client
     }
 
     [Server]

@@ -19,6 +19,23 @@ public class ExplodeMovie : NetworkBehaviour
         StartCoroutine(StartExplodeMovie(whichCog));
     }
 
+    public IEnumerator MultipleExplodeMovie(List<GameObject> cogs)
+    {
+        foreach(GameObject g in battleCell.toons)
+        {
+            g.GetComponent<PlayerAnimate>().StartCoroutine("BattleAnimate", "Duck"); // This is going to make some Toons run Idle early on multiple explosions...
+        }
+
+        foreach(GameObject g in cogs)
+        {
+            g.GetComponent<CogAnimate>().StartCoroutine("ExplodeCog");
+        }
+
+        yield return new WaitForSeconds(6.5f);
+
+        battleMovie.MovieFinished();
+    }
+
     IEnumerator StartExplodeMovie(int whichCog)
     {
         print("Cog is exploding...");

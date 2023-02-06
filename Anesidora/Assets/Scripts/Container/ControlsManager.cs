@@ -12,6 +12,8 @@ public class ControlsManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) {Destroy(this);}
         else {Instance = this;}
+
+        Application.runInBackground = true;
     }
 
     private void Start()

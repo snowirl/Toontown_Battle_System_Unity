@@ -189,7 +189,7 @@ public class ThrowMovie : NetworkBehaviour
                     yield return new WaitForSeconds(.75f);
 
                     
-                    cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{GetKnockbackDamage(battleCalculation)}", "yellow");
+                    cog.GetComponent<CogAnimate>().CallAnimateDamageText($"-{GetTeamDamage(battleCalculation)}", "yellow");
                     yield return new WaitForSeconds(.5f);
                 }
                 else
@@ -229,7 +229,7 @@ public class ThrowMovie : NetworkBehaviour
         }
     }
 
-    int GetKnockbackDamage(BattleCalculation battleCalculation)
+    int GetTeamDamage(BattleCalculation battleCalculation)
     {
         int dmg = 0;
 

@@ -11,7 +11,7 @@ public class BattleUIManager : MonoBehaviour
     public GameObject[] toonHps, cogHps, cogSelectButtons;
     public List<Gag>throwGags = new List<Gag>();
     public List<Gag>lureGags = new List<Gag>();
-    public List<Gag>trapGags = new List<Gag>();
+    public List<Gag>trapGags, soundGags = new List<Gag>();
     private Gag gagSelected;
     private int cogSelected;
 
@@ -121,6 +121,14 @@ public class BattleUIManager : MonoBehaviour
         {
             ShowSelectCogPanel();
         }
+    }
+
+    public void SelectSoundGag(int val)
+    {
+        gagSelected = soundGags[val];
+
+        cogSelected = -1;
+        SendGagData();
     }
 
     public void ShowSelectCogPanel()

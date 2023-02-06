@@ -158,6 +158,8 @@ public class TrapMovie : NetworkBehaviour
 
         banana.LeanMove(new Vector3(pos.x - 2, 0, pos.z), 1f).setEase(LeanTweenType.easeOutCubic);
 
+        ChangeCamera(2, battleCalculation.gagDataList[gagIndex].whichToon, battleCalculation.gagDataList[gagIndex].whichTarget);
+
         yield return new WaitForSeconds(1.5f);
 
         banana.transform.position = new Vector3(pos.x - 2, 0, pos.z);
@@ -195,10 +197,22 @@ public class TrapMovie : NetworkBehaviour
         for(int i = 0; i < trapsSpawnedInfo.Length; i++)
         {
 
-            if(trapsSpawnedInfo[i] != null)
+            if(trapsSpawnedInfo[i] == null)
             {
-                Vector3 pos = battleCell.cogs[trapsSpawnedInfo[i].whichTarget].transform.position;
-                trapsSpawned[i].transform.position = new Vector3(pos.x - 2, 0, pos.z);
+                
+            }
+            else
+            {
+                if(trapsSpawned[i] == null)
+                {
+
+                }
+                else
+                {
+                    Vector3 pos = battleCell.cogs[trapsSpawnedInfo[i].whichTarget].transform.position;
+                    trapsSpawned[i].transform.position = new Vector3(pos.x - 2, 0, pos.z);
+                }
+                
             }
         }
     }
@@ -248,6 +262,7 @@ public class TrapMovie : NetworkBehaviour
         battleCell.cogs[g.whichTarget].GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "SlipBackwards");
         yield return new WaitForSeconds(.25f);
         battleCell.cogs[g.whichTarget].GetComponent<CogAnimate>().ChangeHealthButton(g.gag.power);
+        battleCell.cogs[g.whichTarget].GetComponent<CogAnimate>().CallAnimateDamageText($"-{g.gag.power}", "red");
         var pos = battleCell.cogPositions[g.whichTarget].position;
         var randomPos = new Vector3(pos.x - Random.Range(4,7), pos.y -.2f, pos.z + Random.Range(-3, 3));
         trapsSpawned[g.whichTarget].LeanMove(randomPos, .75f).setEase(LeanTweenType.easeOutCubic);

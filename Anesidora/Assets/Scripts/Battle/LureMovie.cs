@@ -9,6 +9,7 @@ public class LureMovie : NetworkBehaviour
     private BattleCell battleCell;
     bool showedToonsCamera, showedCogsCamera;
     List<BattleCalculation> battleCalculations = new List<BattleCalculation>();
+    public List<GameObject> lureProps = new List<GameObject>();
 
     void Start()
     {
@@ -128,6 +129,22 @@ public class LureMovie : NetworkBehaviour
 
         toon.GetComponent<PlayerAnimate>().StartCoroutine("BattleAnimate", "Magnet");
 
+        var handsSpot = toon.GetComponent<PlayerAnimate>().GetLeftHand();
+
+        var magnet = Instantiate(lureProps[1], Vector3.zero, Quaternion.identity);
+
+        magnet.transform.SetParent(handsSpot);
+
+        var scale = magnet.transform.localScale.x;
+
+        magnet.LeanScale(Vector3.zero, 0f).setEase(LeanTweenType.easeOutCubic);
+
+        magnet.LeanScale(new Vector3(scale, scale, scale), 1f).setEase(LeanTweenType.easeOutCubic);
+
+        magnet.transform.localPosition = new Vector3(.002f, .002f, .002f);
+
+        magnet.transform.localRotation = Quaternion.Euler(180,0,90);
+
         if(battleCalculation.didHit)
         {
             if(battleCalculation.gagDataList.Count - 1 != gagIndex)
@@ -144,19 +161,9 @@ public class LureMovie : NetworkBehaviour
             {
                 g.GetComponent<CogAnimate>().CallAnimateDamageText($"Lured", "green");
                 StartCoroutine(CogMagnetAnimation(g));
-                print("Ran in this list.");
             }
 
-            yield return new WaitForSeconds(.25f);
-
-            // yield return StartCoroutine(cogList[0].GetComponent<CogAnimate>().WaitForAnimation());  
-
-            foreach(GameObject g in cogList)
-            {
-                
-            }
-
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(3.25f); 
   
 
             foreach(GameObject g in cogList)
@@ -166,8 +173,6 @@ public class LureMovie : NetworkBehaviour
                     g.GetComponent<CogAnimate>().Animate("Lured");
                 }
             }
-
-            yield return new WaitForSeconds(3.25f);
         }
         else
         {
@@ -178,6 +183,9 @@ public class LureMovie : NetworkBehaviour
 
             yield return new WaitForSeconds(1f);
         }
+
+        magnet.LeanScale(Vector3.zero, 1f).setEase(LeanTweenType.easeOutCubic);
+        Destroy(magnet, 1);
     }
 
     IEnumerator CogMagnetAnimation(GameObject cog)
