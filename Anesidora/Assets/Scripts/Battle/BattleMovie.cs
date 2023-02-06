@@ -20,6 +20,8 @@ public class BattleMovie : NetworkBehaviour
     public List<GameObject> cogGroupCameras = new List<GameObject>();
     private CogMovie cogMovie;
     private LureMovie lureMovie;
+    private TrapMovie trapMovie;
+    public bool lureCompleted; // check if we already completed lure so we can check trap next time around
 
     void Start()
     {
@@ -28,6 +30,7 @@ public class BattleMovie : NetworkBehaviour
         throwMovie = GetComponent<ThrowMovie>();
         cogMovie = GetComponent<CogMovie>();
         lureMovie = GetComponent<LureMovie>();
+        trapMovie = GetComponent<TrapMovie>();
     }
 
     public void MovieFinished()
@@ -92,9 +95,21 @@ public class BattleMovie : NetworkBehaviour
     {
         if(battleCell.battleState == BattleState.PLAYER_ATTACK)
         {
-            if(battleCalculator.track == GagTrack.LURE)
+            if(battleCalculator.track == GagTrack.TRAP)
             {
-                battleCalculator.ExecuteCalcLure(battleCalcList);
+                battleCalculator.ExecuteCalcTrapStart(battleCalcList);
+            }
+            else if(battleCalculator.track == GagTrack.LURE)
+            {
+                if(!lureCompleted)
+                {
+                    battleCalculator.ExecuteCalcLure(battleCalcList);
+                }
+                else
+                {
+                    battleCalculator.ExecuteCalcTrapEnd();
+                }
+                
             }
             else if(battleCalculator.track == GagTrack.THROW)
             {
@@ -159,6 +174,47 @@ public class BattleMovie : NetworkBehaviour
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
         lureMovie.StartLureMovies(battleCalculations); // Starts CO on clients
+    }
+
+    [Server]
+    public void SendTrapMovies(List<BattleCalculation> battleCalculations)
+    {
+        battleCalcList = battleCalculations; // Give the server the battle calculations it needs to send back
+
+        clientsDone = 0;
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        trapMovie.StartTrapMovies(battleCalculations); // Starts CO on server
+
+        RpcTrapMovies(battleCalculations); // Sends CO to clients
+    }
+
+    [ClientRpc]
+    void RpcTrapMovies(List<BattleCalculation> battleCalculations)
+    {
+        if(!isClientOnly) {return;} // Don't run on Host 
+
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        trapMovie.StartTrapMovies(battleCalculations); // Starts CO on clients
+    }
+
+    [Server]
+    public void SendTrapMoviesEnd(List<GagData> trappedList)
+    {
+        clientsDone = 0;
+        moviesRemaining = trappedList.Count; // sets movies remaining on server 
+        trapMovie.StartTrapMoviesEnd(trappedList); // Starts CO on server
+        RpcTrapMoviesEnd(trappedList); // Sends CO to clients
+    }
+
+    [ClientRpc]
+    void RpcTrapMoviesEnd(List<GagData> trappedList)
+    {
+        if(!isClientOnly) {return;} // Don't run on Host 
+
+        moviesRemaining = trappedList.Count; // sets movies remaining on server 
+        trapMovie.StartTrapMoviesEnd(trappedList); // Starts CO on server
     }
 
     [Server]

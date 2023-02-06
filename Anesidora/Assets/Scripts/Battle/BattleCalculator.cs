@@ -11,6 +11,7 @@ public class BattleCalculator : NetworkBehaviour
     public BattleMovie battleMovie;
     public GagTrack track; // Which gag track are we calculating for?
     public List<GameObject> cogsAttackingList = new List<GameObject>(); // see how many cogs are unlured or not dead to attack
+    public List<GagData>trapsInPlay = new List<GagData>();
 
     [Server]
     public void StartBattle()
@@ -62,7 +63,7 @@ public class BattleCalculator : NetworkBehaviour
 
         if(gagDatas.Count >= battleCell.toons.Count)
         {
-            PlayerAttack(GagTrack.LURE);
+            PlayerAttack(GagTrack.TRAP);
         }
 
     }
@@ -76,7 +77,11 @@ public class BattleCalculator : NetworkBehaviour
 
         battleCell.battleState = BattleState.PLAYER_ATTACK;
 
-        if(gagTrack == GagTrack.LURE)
+        if(gagTrack == GagTrack.TRAP)
+        {
+            CalcTrapStart();
+        }
+        else if(gagTrack == GagTrack.LURE)
         {
             CalcLure();
         }
@@ -91,8 +96,184 @@ public class BattleCalculator : NetworkBehaviour
     }
 
     [Server]
+    void CalcTrapStart()
+    {
+        var battleCalculationList = new List<BattleCalculation>();
+
+        var trapList = new List<GagData>();
+
+        var cogOneList = new List<GagData>();
+        var cogTwoList = new List<GagData>();
+        var cogThreeList = new List<GagData>();
+        var cogFourList = new List<GagData>();
+
+        foreach(GagData g in gagDatas)
+        {
+            if(g.gag.gagTrack == GagTrack.TRAP)
+            {
+                trapList.Add(g);
+                print("Found TRAP gag.");
+            }
+        }
+        
+        if(trapList.Count == 0)
+        {
+            print("No TRAP gags found. Moving on...");
+            NextTrack();
+            return;
+        }
+
+        foreach(GagData g in trapList)
+        {
+            if(g.whichTarget == 0)
+            {
+                cogOneList.Add(g);
+            }
+            else if(g.whichTarget == 1)
+            {
+                cogTwoList.Add(g);
+            }
+            else if(g.whichTarget == 2)
+            {
+                cogThreeList.Add(g);
+            }
+            else if(g.whichTarget == 3)
+            {
+                cogFourList.Add(g);
+            }
+        }
+
+        for(int i = 0; i < 4; i++)
+        {
+            var cogList = new List<GagData>();
+
+            if(i == 0)
+            {
+                cogList = cogOneList;
+            }
+            else if(i == 1)
+            {
+                cogList = cogTwoList;
+            }
+            else if(i == 2)
+            {
+                cogList = cogThreeList;
+            }
+            else if(i == 3)
+            {
+                cogList = cogFourList;
+            }
+
+            if(cogList.Count > 1)
+            {
+                // More than one trap was used on a Cog! 
+                print("More than one trap was used on a single Cog!");
+            }
+            
+            if(cogList.Count > 0)
+            {
+                if(battleCell.cogs[i].GetComponent<CogBattle>().isDead)
+                {
+                    print("Cog is already dead, we can't attack him.");
+                    break; // Cog is dead, so we do not need to calculate this Battle Calculation // Might be in the wrong spot though.
+                }
+                else if(battleCell.cogs[i].GetComponent<CogBattle>().isTrapped)
+                {
+                    print("Cog is already Trapped, we can't attack him.");
+                    //break; // Cog is already Trapped, so we do not need to calculate this Battle Calculation // Might be in the wrong spot though.
+                }
+                else if(battleCell.cogs[i].GetComponent<CogBattle>().isLured)
+                {
+                    print("Cog is already LURED, we can't TRAP him.");
+                    //break; // Cog is already Trapped, so we do not need to calculate this Battle Calculation // Might be in the wrong spot though.
+                }
+
+                var battleCalc = new BattleCalculation();
+
+                battleCalc.whichCog = i;
+
+                foreach(GagData g in cogList)
+                {
+                    battleCalc.gagDataList.Add(g);
+                }
+
+                battleCalc.didHit = true;
+
+                battleCalculationList.Add(battleCalc);
+            }
+        }
+
+        battleMovie.SendTrapMovies(battleCalculationList);
+    }
+
+    [Server]
+    public void ExecuteCalcTrapStart(List<BattleCalculation> battleCalculationList)
+    {
+        print("Executing trap logic.");
+
+        foreach(BattleCalculation b in battleCalculationList)
+        {
+            if(b.gagDataList.Count > 1)
+            {
+                // more than one trap used.
+                print("More than one trap used. Not calculating this...");
+            }
+            else
+            {
+                trapsInPlay.Add(b.gagDataList[0]);
+                battleCell.cogs[b.whichCog].GetComponent<CogBattle>().isTrapped = true;
+            }
+        }
+
+        CheckIfCogsAreDead();
+    }
+
+    [Server]
+    void CalcTrapEnd()
+    {
+        battleMovie.lureCompleted = true;
+
+        print("did I make it here?");
+
+        if(trapsInPlay.Count > 0)
+        {
+            battleMovie.SendTrapMoviesEnd(trapsInPlay);
+        }
+        else
+        {
+            CheckIfCogsAreDead();
+        }
+
+        
+    }
+
+    [Server]
+    public void ExecuteCalcTrapEnd()
+    {
+
+        foreach(GagData g in trapsInPlay)
+        {
+            GameObject whichCog = battleCell.cogs[g.whichTarget];
+            var cogBattle = whichCog.GetComponent<CogBattle>();
+            int dmg = g.gag.power;
+
+            cogBattle.hp -= dmg;
+            cogBattle.isLured = false;
+            cogBattle.isTrapped = false;
+
+            print($"Cog took TRAP damage {dmg}");
+        }
+
+        trapsInPlay.Clear();
+
+        CheckIfCogsAreDead();
+    }
+
+    [Server]
     void CalcLure()
     {
+        battleMovie.lureCompleted = false;
+
         var battleCalculationList = new List<BattleCalculation>();
 
         var lureList = new List<GagData>();
@@ -278,7 +459,7 @@ public class BattleCalculator : NetworkBehaviour
             }
         }
 
-        CheckIfCogsAreDead();
+        CalcTrapEnd();
     }
 
     [Server]
@@ -595,7 +776,11 @@ public class BattleCalculator : NetworkBehaviour
     [Server]
     void NextTrack()
     {
-        if(track == GagTrack.LURE)
+        if(track == GagTrack.TRAP)
+        {
+            PlayerAttack(GagTrack.LURE);
+        }
+        else if(track == GagTrack.LURE)
         {
             PlayerAttack(GagTrack.THROW);
         }

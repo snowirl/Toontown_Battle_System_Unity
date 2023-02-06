@@ -497,6 +497,7 @@ public class BattleCell : NetworkBehaviour
                         cog.transform.position = new Vector3(cogPositions[cogIndex].transform.position.x, cogPositions[cogIndex].transform.position.y + 1, cogPositions[cogIndex].transform.position.z);
                     }
                     
+                    GetComponent<TrapMovie>().CallMoveTraps();
                 }
             }
         }

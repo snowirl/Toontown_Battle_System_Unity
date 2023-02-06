@@ -7575,6 +7575,7 @@ GameObject:
   - component: {fileID: 1786914386}
   - component: {fileID: 1786914387}
   - component: {fileID: 1786914388}
+  - component: {fileID: 1786914389}
   m_Layer: 0
   m_Name: BattleCell
   m_TagString: BattleCell
@@ -7590,7 +7591,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1786914379}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.69, y: 0.12, z: -17.43}
+  m_LocalPosition: {x: -16.69, y: 0, z: -17.43}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -7683,9 +7684,11 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   battleCell: {fileID: 1786914381}
+  gagDatas: []
   battleMovie: {fileID: 1786914384}
   track: 0
   cogsAttackingList: []
+  trapsInPlay: []
 --- !u!114 &1786914384
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7716,6 +7719,7 @@ MonoBehaviour:
   cogGroupCameras:
   - {fileID: 28955118}
   - {fileID: 636471801}
+  lureCompleted: 0
 --- !u!114 &1786914385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7765,7 +7769,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  particleSystemPrefabs: []
 --- !u!114 &1786914388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7780,6 +7783,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+--- !u!114 &1786914389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1786914379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e625b373fed7a6e41a9428775ea83b1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  trapProps:
+  - {fileID: 5284763986031047663, guid: a463644f50f477c40a293c5a4930aeab, type: 3}
+  trapsSpawned:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  trapsSpawnedInfo:
+  - whichTarget: 0
+    whichToon: 0
+    gag: {fileID: 0}
+  - whichTarget: 0
+    whichToon: 0
+    gag: {fileID: 0}
+  - whichTarget: 0
+    whichToon: 0
+    gag: {fileID: 0}
+  - whichTarget: 0
+    whichToon: 0
+    gag: {fileID: 0}
 --- !u!1001 &1845949526
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9891,7 +9928,7 @@ PrefabInstance:
     - target: {fileID: 8008257645110008503, guid: 998ba9e9229b9644ca4d2f2c76dab57a,
         type: 3}
       propertyPath: isLured
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8008257645110008510, guid: 998ba9e9229b9644ca4d2f2c76dab57a,
         type: 3}
