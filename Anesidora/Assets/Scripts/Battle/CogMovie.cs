@@ -62,6 +62,12 @@ public class CogMovie : NetworkBehaviour
 
         cog.GetComponent<CogAnimate>().StartCoroutine("BattleAnimate", "PoundKey");
 
+        var phrases = battleCalculationCog.cogAttack.phrases;
+
+        cog.GetComponent<CogChat>().CogTalk(phrases[Random.Range(0, phrases.Count)]);
+
+        BattleUIManager.Instance.SetCogAttackText(battleCalculationCog.cogAttack.attackName.ToString());
+
         var leftHandSpot = cog.GetComponent<CogAnimate>().GetLeftHand();
         var rightHandSpot = cog.GetComponent<CogAnimate>().GetRightHand();
 

@@ -156,13 +156,13 @@ public class TrapMovie : NetworkBehaviour
 
         banana.transform.SetParent(null);
 
-        banana.LeanMove(new Vector3(pos.x - 2, 0, pos.z), 1f).setEase(LeanTweenType.easeOutCubic);
+        banana.LeanMove(new Vector3(pos.x - 2, pos.y - 1.2f, pos.z), 1f).setEase(LeanTweenType.easeOutCubic);
 
         ChangeCamera(2, battleCalculation.gagDataList[gagIndex].whichToon, battleCalculation.gagDataList[gagIndex].whichTarget);
 
         yield return new WaitForSeconds(1.5f);
 
-        banana.transform.position = new Vector3(pos.x - 2, 0, pos.z);
+        banana.transform.position = new Vector3(pos.x - 2, pos.y - 1.2f, pos.z);
 
         if(battleCalculation.gagDataList.Count > 1 && battleCalculation.gagDataList.Count -1 == gagIndex)
         {
@@ -210,7 +210,7 @@ public class TrapMovie : NetworkBehaviour
                 else
                 {
                     Vector3 pos = battleCell.cogs[trapsSpawnedInfo[i].whichTarget].transform.position;
-                    trapsSpawned[i].transform.position = new Vector3(pos.x - 2, 0, pos.z);
+                    trapsSpawned[i].transform.position = new Vector3(pos.x - 2, pos.y - 1.2f, pos.z);
                 }
                 
             }

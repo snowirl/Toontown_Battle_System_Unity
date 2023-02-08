@@ -215,6 +215,7 @@ public class LureMovie : NetworkBehaviour
         cog.GetComponent<CogAnimate>().Animate("Landing");
 
         yield return StartCoroutine(cog.GetComponent<CogAnimate>().BattleAnimate("Landing"));
+
     }
 
     void ChangeCamera(int phase, int toonIndex, int cogIndex) // 1 for toons cam, 1 for cogs cam

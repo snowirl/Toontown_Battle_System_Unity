@@ -49,6 +49,8 @@ public class ExplodeMovie : NetworkBehaviour
 
         yield return cog.GetComponent<CogAnimate>().StartCoroutine("ExplodeCog");
 
+        cog.GetComponent<CogChat>().nametag.SetActive(false);
+
         battleMovie.MovieFinished();
     }
 }

@@ -17,6 +17,7 @@ public class BattleUIManager : MonoBehaviour
 
     [HideInInspector]
     public GameObject localPlayer;
+    public GameObject CogAttackText;
 
     private void Awake()
     {
@@ -200,5 +201,26 @@ public class BattleUIManager : MonoBehaviour
     public void SpawnCog()
     {
         localPlayer.GetComponent<PlayerBattle>().SpawnCog();
+    }
+
+    public void SetCogAttackText(string attackName)
+    {
+        StartCoroutine(CogAttackTextCO(attackName));
+    }
+
+    public IEnumerator CogAttackTextCO(string attackName)
+    {
+        CogAttackText.LeanScale(Vector3.zero, 0);
+        CogAttackText.SetActive(true);
+        CogAttackText.GetComponentInChildren<TMP_Text>().text = $"{attackName}!";
+        CogAttackText.LeanScale(Vector3.one, .45f).setEase(LeanTweenType.easeOutBounce);
+
+        yield return new WaitForSeconds(5f);
+
+        CogAttackText.LeanScale(Vector3.zero, .45f).setEase(LeanTweenType.easeOutCubic);
+        
+        yield return new WaitForSeconds(.5f);
+
+        CogAttackText.SetActive(false);
     }
 }

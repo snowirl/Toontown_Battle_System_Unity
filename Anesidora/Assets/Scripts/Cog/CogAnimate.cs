@@ -80,7 +80,7 @@ public class CogAnimate : NetworkBehaviour
 
     public void CallAnimateDamageText(string message, string color) // 
     {
-        LeanTween.cancelAll();
+        LeanTween.cancel(damageText);
 
         StopCoroutine("AnimateDamageText");
         StartCoroutine(AnimateDamageText(message, color));
