@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "gag", menuName = "Toontown/Gag", order = 1)]
 public class Gag : ScriptableObject

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class BattleUIManager : MonoBehaviour
 {
@@ -18,6 +19,13 @@ public class BattleUIManager : MonoBehaviour
     [HideInInspector]
     public GameObject localPlayer;
     public GameObject CogAttackText;
+    public GameObject lurePanel, trapPanel, toonupPanel;
+    public bool[] cogsTrappedArray = new bool[4];
+    public bool[] cogsLuredArray = new bool[4];
+    public GameObject backButton;
+    public Image gagSelectedImage;
+    public TMP_Text cogSelectedText; // ex: X--- WHICH COG SELECTED
+
 
     private void Awake()
     {
@@ -27,10 +35,88 @@ public class BattleUIManager : MonoBehaviour
 
     public void ShowBattleUI()
     {
+        var battleCell = localPlayer.GetComponent<PlayerBattle>().battleCell.GetComponent<BattleCell>();
+
         battleUI.SetActive(true);
 
         gagPanel.SetActive(true);
         cogSelectPanel.SetActive(false);
+
+        if(battleCell.toons.Count < 2) // if there is only one toon in battle
+        {
+            foreach(Button b in toonupPanel.GetComponentsInChildren<Button>())
+            {
+                b.interactable = false;
+            }
+        }
+        else
+        {
+            foreach(Button b in toonupPanel.GetComponentsInChildren<Button>())
+            {
+                b.interactable = true;
+            }
+        }
+
+        int index = 0;
+        int cogsLured = 0;
+        int cogsTrapped = 0;
+        bool allLured = false;
+
+
+        foreach(GameObject g in battleCell.cogs)
+        {
+            if(g.GetComponent<CogBattle>().isLured)
+            {
+                cogsLuredArray[index] = true;
+                cogsTrappedArray[index] = false;
+                cogsLured++;
+            }
+            else if(g.GetComponent<CogBattle>().isTrapped)
+            {
+                cogsTrappedArray[index] = true;
+                cogsLuredArray[index] = false;
+                cogsTrapped++;
+            }
+            else
+            {
+                cogsTrappedArray[index] = false;
+                cogsLuredArray[index] = false;
+            }
+
+            index++;
+        }
+
+        if(cogsLured >= battleCell.cogs.Count) // if all cogs are lured
+        {
+            foreach(Button b in lurePanel.GetComponentsInChildren<Button>())
+            {
+                b.interactable = false;
+            }
+
+            allLured = true;
+        }
+        else
+        {
+            foreach(Button b in lurePanel.GetComponentsInChildren<Button>())
+            {
+                b.interactable = true;
+            }
+        }
+
+        if(cogsTrapped >= battleCell.cogs.Count || allLured) // if all cogs are trapped or all are lured
+        {
+            foreach(Button b in trapPanel.GetComponentsInChildren<Button>())
+            {
+                b.interactable = false;
+            }
+        }
+        else
+        {
+            foreach(Button b in trapPanel.GetComponentsInChildren<Button>())
+            {
+                b.interactable = true;
+            }
+        }
     }
 
     public void UpdateHP_UI(BattleCell battleCell)
@@ -156,16 +242,63 @@ public class BattleUIManager : MonoBehaviour
 
     public void ShowSelectCogPanel()
     {
+        var battleCell = localPlayer.GetComponent<PlayerBattle>().battleCell.GetComponent<BattleCell>();
         gagPanel.SetActive(false);
+        backButton.SetActive(true);
 
         foreach(GameObject g in cogSelectButtons)
         {
             g.SetActive(false);
         }
 
-        for(int i = 0; i < localPlayer.GetComponent<PlayerBattle>().battleCell.GetComponent<BattleCell>().cogs.Count; i++)
+        for(int i = 0; i < battleCell.cogs.Count; i++)
         {
             cogSelectButtons[i].SetActive(true);
+        }
+
+        if(gagSelected.gagTrack == GagTrack.LURE)
+        {
+            int index = 0;
+
+            foreach(GameObject g in cogSelectButtons)
+            {
+                if(cogsLuredArray[index])
+                {
+                    g.GetComponent<Button>().interactable = false;
+                }
+                else
+                {
+                    if(index <= battleCell.cogs.Count - 1)
+                    {
+                        g.GetComponent<Button>().interactable = true;
+                    }
+                    
+                }
+
+                index++;
+            }
+        }
+
+        if(gagSelected.gagTrack == GagTrack.TRAP)
+        {
+            int index = 0;
+
+            foreach(GameObject g in cogSelectButtons)
+            {
+                if(cogsLuredArray[index] || cogsTrappedArray[index])
+                {
+                    g.GetComponent<Button>().interactable = false;
+                }
+                else
+                {   
+                    if(index <= battleCell.cogs.Count - 1)
+                    {
+                        g.GetComponent<Button>().interactable = true;
+                    }
+                }
+
+                index++;
+            }
         }
 
         cogSelectPanel.SetActive(true);
@@ -183,6 +316,7 @@ public class BattleUIManager : MonoBehaviour
         battleUI.SetActive(false);
         gagPanel.SetActive(false);
         cogSelectPanel.SetActive(false);
+        backButton.SetActive(false);
     }
 
     public void SendGagData()
@@ -195,12 +329,54 @@ public class BattleUIManager : MonoBehaviour
         gagData.whichTarget = cogSelected;
         gagData.whichToon = -1; // Needs to be changed in Network Behaviour
 
+        var battleCell = localPlayer.GetComponent<PlayerBattle>().battleCell.GetComponent<BattleCell>();
+
         localPlayer.GetComponent<PlayerBattle>().SendGagData(gagData);
+
+        // gagSelectedImage.sprite = gagSelected.gagSprite;
+
+        // cogSelectedText.text = string.Empty;
+        
+        // if(cogSelected == -1)
+        // {
+        //     foreach(GameObject g in battleCell.cogs)
+        //     {
+        //         cogSelectedText.text += "X";
+        //     }
+        // }
+        // else
+        // {
+        //     int index = 0;
+
+        //     foreach(GameObject g in battleCell.cogs)
+        //     {
+        //         if(index == cogSelected)
+        //         {
+        //             cogSelectedText.text += "X";
+        //         }
+        //         else
+        //         {
+        //             cogSelectedText.text += "-";
+        //         }
+                
+        //     }
+        // }
     }
 
     public void SpawnCog()
     {
         localPlayer.GetComponent<PlayerBattle>().SpawnCog();
+    }
+
+    public void GoBack()
+    {
+        backButton.SetActive(false);
+
+        gagSelected = null;
+        cogSelected = 0;
+
+        cogSelectPanel.SetActive(false);
+        gagPanel.SetActive(true);
     }
 
     public void SetCogAttackText(string attackName)
