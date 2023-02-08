@@ -179,13 +179,13 @@ public class SoundMovie : NetworkBehaviour
                     }
                 }
             } // more than one gag was used.
-
-            megaphone.LeanScale(Vector3.zero, 1).setEase(LeanTweenType.easeOutCubic);
-
-            yield return new WaitForSeconds(.5f);
-
-            Destroy(megaphone);
         }
+
+        megaphone.LeanScale(Vector3.zero, 1).setEase(LeanTweenType.easeOutCubic);
+
+        yield return new WaitForSeconds(.5f);
+
+        Destroy(megaphone);
 
         
     }

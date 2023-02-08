@@ -22,6 +22,7 @@ public class BattleMovie : NetworkBehaviour
     private LureMovie lureMovie;
     private TrapMovie trapMovie;
     private SoundMovie soundMovie;
+    private ToonUpMovie toonUpMovie;
     public bool lureCompleted; // check if we already completed lure so we can check trap next time around
 
     void Start()
@@ -33,6 +34,7 @@ public class BattleMovie : NetworkBehaviour
         lureMovie = GetComponent<LureMovie>();
         trapMovie = GetComponent<TrapMovie>();
         soundMovie = GetComponent<SoundMovie>();
+        toonUpMovie = GetComponent<ToonUpMovie>();
     }
 
     public void MovieFinished()
@@ -97,7 +99,11 @@ public class BattleMovie : NetworkBehaviour
     {
         if(battleCell.battleState == BattleState.PLAYER_ATTACK)
         {
-            if(battleCalculator.track == GagTrack.TRAP)
+            if(battleCalculator.track == GagTrack.TOON_UP)
+            {
+                battleCalculator.ExecuteCalcToonUp(battleCalcList);
+            }
+            else if(battleCalculator.track == GagTrack.TRAP)
             {
                 battleCalculator.ExecuteCalcTrapStart(battleCalcList);
             }
@@ -158,6 +164,28 @@ public class BattleMovie : NetworkBehaviour
         moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
 
         throwMovie.StartThrowMovies(battleCalculations); // Starts CO on clients
+    }
+
+    [Server]
+    public void SendToonUpMovies(List<BattleCalculation> battleCalculations)
+    {
+        battleCalcList = battleCalculations; // Give the server the battle calculations it needs to send back
+        clientsDone = 0;
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        toonUpMovie.StartCoroutine("StartToonUpMovies", battleCalculations);// Starts CO on server
+
+        RpcToonUpMovies(battleCalculations); // Sends CO to clients
+    }
+
+    [ClientRpc]
+    void RpcToonUpMovies(List<BattleCalculation> battleCalculations)
+    {
+        if(!isClientOnly) {return;} // Don't run on Host 
+
+        moviesRemaining = battleCalculations.Count; // sets movies remaining on server 
+
+        toonUpMovie.StartCoroutine("StartToonUpMovies", battleCalculations);// Starts CO on server
     }
 
     [Server]

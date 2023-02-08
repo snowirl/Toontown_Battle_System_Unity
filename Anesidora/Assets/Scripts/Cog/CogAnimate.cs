@@ -13,7 +13,7 @@ public class CogAnimate : NetworkBehaviour
     public Color redColor, orangeColor, yellowColor, greenColor;
     public GameObject cogHealthButton;
     public Material redMat, orangeMat, yellowMat, greenMat, blackMat;
-    public GameObject particleSpawnSpot;
+    public GameObject particleSpawnSpot, rightHandSpot, leftHandSpot;
 
     [Server]
     public void ChangeAnimationState(string newState)
@@ -187,5 +187,15 @@ public class CogAnimate : NetworkBehaviour
         cogHealthButton.GetComponent<Renderer>().material = blackMat;
 
         StartCoroutine(RedBlinking());
+    }
+
+    public Transform GetRightHand()
+    {
+        return rightHandSpot.transform;
+    }
+
+    public Transform GetLeftHand()
+    {
+        return leftHandSpot.transform;
     }
 }

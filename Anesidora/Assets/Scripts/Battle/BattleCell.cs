@@ -22,6 +22,7 @@ public class BattleCell : NetworkBehaviour
     [SyncVar (hook = nameof(EnableCollider))]
     public bool colliderEnabled;
     public BattleCalculator battleCalculator;
+    public Transform toonupSpot;
 
     public override void OnStartClient()
     {

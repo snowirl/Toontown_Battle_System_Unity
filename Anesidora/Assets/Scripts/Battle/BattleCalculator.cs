@@ -63,7 +63,7 @@ public class BattleCalculator : NetworkBehaviour
 
         if(gagDatas.Count >= battleCell.toons.Count)
         {
-            PlayerAttack(GagTrack.TRAP);
+            PlayerAttack(GagTrack.TOON_UP);
         }
 
     }
@@ -77,7 +77,11 @@ public class BattleCalculator : NetworkBehaviour
 
         battleCell.battleState = BattleState.PLAYER_ATTACK;
 
-        if(gagTrack == GagTrack.TRAP)
+        if(gagTrack == GagTrack.TOON_UP)
+        {
+            CalcToonUp();
+        }
+        else if(gagTrack == GagTrack.TRAP)
         {
             CalcTrapStart();
         }
@@ -97,6 +101,100 @@ public class BattleCalculator : NetworkBehaviour
         {
             CalcSquirt();
         }
+    }
+
+    [Server]
+    void CalcToonUp()
+    {
+        var battleCalculationList = new List<BattleCalculation>();
+
+        var toonUpList = new List<GagData>();
+
+        foreach(GagData g in gagDatas)
+        {
+            if(g.gag.gagTrack == GagTrack.TOON_UP)
+            {
+                toonUpList.Add(g);
+                print("Found TOONUP gag.");
+            }
+        }
+
+        if(toonUpList.Count == 0)
+        {
+            print("No TOONUP gags found. Moving on...");
+            NextTrack();
+            return;
+        }
+
+        if(toonUpList.Count > 1)
+        {
+            toonUpList = OrderGagList(toonUpList);
+        }
+
+        foreach(GagData g in toonUpList)
+        {
+            var battleCalc = new BattleCalculation();
+
+            battleCalc.didHit = CalculateToonUpHit(g);
+
+            battleCalc.gagDataList.Add(g);
+
+            battleCalc.whichCog = g.whichTarget; // Which Cog means which Toon in this case
+
+            battleCalculationList.Add(battleCalc);
+        }
+
+        battleMovie.SendToonUpMovies(battleCalculationList);
+    }
+
+    [Server]
+    public void ExecuteCalcToonUp(List<BattleCalculation> battleCalculationList)
+    {
+        foreach(BattleCalculation b in battleCalculationList)
+        {
+            
+            var healingPower = b.gagDataList[0].gag.power;
+            var sender = battleMovie.GetToonFromIndex((b.gagDataList[0].whichToon), true);
+
+            var toonsToHeal = new List<GameObject>();
+
+            if(b.whichCog == -1) // if we are an attack all toonup
+            {
+                foreach(GameObject g in battleCell.toons)
+                {
+                    if(g != sender)
+                    {
+                        toonsToHeal.Add(g);
+                    }
+                }
+
+                healingPower = healingPower / battleCell.toons.Count - 1;
+            }
+            else
+            {
+                toonsToHeal.Add(battleCell.toons[b.whichCog]);
+            }
+
+            if(b.didHit)
+            {
+                foreach(GameObject g in toonsToHeal)
+                {
+                    var playerBattle = g.GetComponent<PlayerBattle>();
+                    var tempHealingPower = healingPower;
+
+                    if(healingPower > playerBattle.maxHp - playerBattle.hp)
+                    {
+                        tempHealingPower = playerBattle.maxHp - playerBattle.hp;
+                    }
+
+                    playerBattle.hp += tempHealingPower;
+
+                    print($"Player healed for {tempHealingPower}");
+                }
+            }
+        }
+
+        NextTrack();
     }
 
     [Server]
@@ -872,7 +970,11 @@ public class BattleCalculator : NetworkBehaviour
     [Server]
     void NextTrack()
     {
-        if(track == GagTrack.TRAP)
+        if(track == GagTrack.TOON_UP)
+        {
+            PlayerAttack(GagTrack.TRAP);
+        }
+        else if(track == GagTrack.TRAP)
         {
             PlayerAttack(GagTrack.LURE);
         }
@@ -1182,6 +1284,26 @@ public class BattleCalculator : NetworkBehaviour
         }
 
         print($"ATTACK ACCURACY: {atkAcc} --- PROPACC: {propAcc}");
+
+        if(atkAcc > rand)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool CalculateToonUpHit(GagData gagData)
+    {
+        int propAcc = gagData.gag.acc;
+
+        int atkAcc = propAcc + ((gagData.gag.gagLevel) * 5);
+
+        int rand = Random.Range(0,100);
+
+        if(atkAcc > 95) {atkAcc = 95;}
 
         if(atkAcc > rand)
         {

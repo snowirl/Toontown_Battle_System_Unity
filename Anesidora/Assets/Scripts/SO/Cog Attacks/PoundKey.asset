@@ -17,6 +17,15 @@ MonoBehaviour:
   accuracy: 320000003c00000046000000500000005a000000
   frequency: 050000000a0000000f0000001400000019000000
   areaOfEffect: 0
-  propList: []
-  particleSystemPrefab: {fileID: 9017301629462438941, guid: e76fa7ed31412c6478e253463db55810,
-    type: 3}
+  phrases:
+  - Time to return some calls.
+  - I'd like to make a collect call.
+  - Ring-a-ling - it's for you!
+  - I've been wanting to drop a pound or two.
+  - I have a lot of clout.
+  - This may cause a slight pounding sensation.
+  - I'll just punch in this number.
+  - Let me call up a little surprise.
+  - I'll ring you up.
+  - O.K. Toon, it's the pound for you.
+  - iHope you're not injured from this.

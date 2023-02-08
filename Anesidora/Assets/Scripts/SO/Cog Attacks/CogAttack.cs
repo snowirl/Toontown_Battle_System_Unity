@@ -10,6 +10,7 @@ public class CogAttack : ScriptableObject
     public int[] accuracy = new int [5];
     public int[] frequency = new int [5];
     public bool areaOfEffect;
+    public List<string> phrases = new List<string>();
 
 }
 
