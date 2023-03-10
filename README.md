@@ -1,4 +1,4 @@
-# Toontown_Battle_System_Unity
+# Toontown Battle System in Unity
 
 This is a a barebones fan-made recreation of the battle system from Disney's Toontown Online. Please note this is not a complete project as there are tracks and many gags missing and bugs/glitches or unfinished movie animations. This was just a test of understanding how to implement turn-based mechanics in a multiplayer setting. I am not affiliated with The Walt Disney Company and/or the Disney Interactive Media Group.
 
